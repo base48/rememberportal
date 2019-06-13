@@ -35,12 +35,6 @@
                             <tt>config/routes
 
                         <li .list-group-item>
-                            We can link to other handlers, like the <a href="@{ProfileR}">Profile</a>.
-                            Try it out as an anonymous user and see the access denied.
-                            Then, try to <a href="@{AuthR LoginR}">login</a> with the dummy authentication added
-                            while in development.
-
-                        <li .list-group-item>
                             The HTML you are seeing now is actually composed by a number of <em>widgets</em>, #
                             most of them are brought together by the <tt>defaultLayout</tt> function which #
                             is defined in the <tt>Foundation.hs</tt> module, and used by <tt>#{handlerName}</tt>. #
@@ -104,26 +98,6 @@
                         then updates the page with your submission.
                         (see <tt>Handler/Comment.hs</tt>, <tt>templates/homepage.julius</tt>,
                         and <tt>Handler/Home.hs</tt> for the implementation).
-
-        <div .row>
-            <div .col-lg-6>
-                <div .bs-callout.bs-callout-info.well>
-                    <form .form-horizontal ##{commentFormId}>
-                        <div .field>
-                            <textarea rows="2" ##{commentTextareaId} placeholder="Your comment here..." required></textarea>
-
-                        <button .btn.btn-primary type=submit>
-                           Create comment
-
-           <div .col-lg-4.col-lg-offset-1>
-               <div .bs-callout.bs-callout-info>
-                   <small>
-                       Your comments will appear here. You can also open the
-                       console log to see the raw response from the server.
-                   <ul ##{commentListId}>
-                       $forall comment <- allComments
-                           <li>#{commentMessage $ entityVal comment}
-
     <hr>
 
     <!-- Testing
