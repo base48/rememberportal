@@ -13,11 +13,13 @@
 module Foundation where
 
 import Import.NoFoundation
+import Registration
+
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Network.Mail.Mime
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
+import Data.Char            (isAlphaNum, isAscii)
 
 import Yesod.Auth.Email
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -25,7 +27,6 @@ import Yesod.Core.Types     (Logger)
 import qualified Yesod.Auth.Message as Msg
 import qualified Yesod.Auth.Util.PasswordStore as PS
 import qualified Yesod.Core.Unsafe as Unsafe
-import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 import           Data.Text.Encoding.Error (lenientDecode)
 
@@ -284,21 +285,13 @@ instance YesodAuth App where
 
     authenticate :: (MonadHandler m, HandlerSite m ~ App) --FIXME
                  => Creds App -> m (AuthenticationResult App)
-    authenticate creds
-        -- when logging w/ code
-        | credsPlugin creds == "email-verify" = liftHandler $ runDB $ do
-            --error (show creds)
+    authenticate creds = if credsPlugin creds `elem` ["email", "email-verify"]
+        then liftHandler $ runDB $ do
             x <- getBy $ UniqueEmail $ credsIdent creds
             case x of
                 Just (Entity uid _) -> return $ Authenticated uid
-                Nothing -> return $ ServerError "email-verify"
-        -- when logging w/ password
-        | credsPlugin creds == "email" = liftHandler $ runDB $ do
-            x <- getBy $ UniqueEmail $ credsIdent creds
-            case x of
-                Just (Entity uid _) -> return $ Authenticated uid
-                Nothing -> return $ ServerError "email"
-        | otherwise = error (show creds)
+                Nothing -> return $ ServerError $ credsPlugin creds
+        else error (show creds)
 
     authPlugins :: App -> [AuthPlugin App]
     authPlugins app = [authEmail]
@@ -339,13 +332,24 @@ instance YesodAuthEmail App where
 
     addUnverified email verkey =
         liftHandler $ do
-           -- FIXME process User <form> here
-           a <- getPostParams
-           liftIO $ putStrLn $ pack $ show a
-           runDB $ insert $ newUser email verkey
+           ident <- runInputPost $ ireq identField "ident"
+           runDB $ insert $ newUser ident email verkey
+      where
+        tooShort, tooLong, badChar :: Text
+        tooShort = "Username too short"
+        tooLong = "Username too long"
+        badChar = "Username contains invalid character"
+        identField = check f textField
+        f ident | length ident < 1  = Left tooShort
+                | length ident > 30 = Left tooLong
+                | not $ all p ident = Left badChar
+                | otherwise         = Right ident
+        p c = (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_'
 
     sendVerifyEmail email _verkey verurl = do
-        liftIO $ putStrLn $ "Copy/ Paste this URL in your browser: " ++ verurl
+        $logInfo $ "Verification URL for " <> email <> ": " <> verurl
+        master <- getYesod
+        liftIO $ sendRegEmail (appSettings master) email verurl
 
     getVerifyKey =
         liftHandler . runDB . fmap (join . fmap userVerkey) . get
@@ -406,17 +410,15 @@ instance YesodAuthEmail App where
                         <button type="submit" class="btn btn-primary">_{Msg.Register}
             |]
       where
-        registrationForm = renderBootstrap2 $ UserForm
-            <$> areq textField (fs Msg.UserName "ident") Nothing
-            <*> areq emailField (fs Msg.Email "email") Nothing
-            <*> areq passwordField (fs Msg.Password "password") Nothing
-            <*> areq passwordField (fs Msg.ConfirmPass "confirmPassword") Nothing
+        registrationForm = renderBootstrap2 $ (,)
+            <$> areq textField (fs "Username" "ident") Nothing
+            <*> areq emailField (fs "E-mail" "email") Nothing
         fs msg name = FieldSettings {
-            fsLabel = SomeMessage msg,
+            fsLabel = msg,
             fsTooltip = Nothing,
             fsId = Just name,
             fsName = Just name,
             fsAttrs = [("class", "form-control")]
         }
 
-data UserForm = UserForm { _userFormIdent :: Text, _userFormEmail :: Text, _userFormPassword :: Text, _userFormPasswordConfirm :: Text }
+    --setPasswordHandler = error "TBD" -- FIXME redirect to profile/edit?

@@ -53,9 +53,11 @@ data AppSettings = AppSettings
     , appSkipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
 
+    , appMailFrom               :: Text
+    , appMailSendmailBin        :: FilePath
     -- FIXME: email settings: from
     -- FIXME: payment settingS
-    }
+    } deriving Show
 
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
@@ -72,13 +74,15 @@ instance FromJSON AppSettings where
         appPort                   <- o .: "port"
         appIpFromHeader           <- o .: "ip-from-header"
 
-        dev                       <- o .:? "development"      .!= defaultDev
+        dev                       <- o .:? "development"       .!= defaultDev
 
-        appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
-        appShouldLogAll           <- o .:? "should-log-all"   .!= dev
-        appReloadTemplates        <- o .:? "reload-templates" .!= dev
-        appMutableStatic          <- o .:? "mutable-static"   .!= dev
-        appSkipCombining          <- o .:? "skip-combining"   .!= dev
+        appDetailedRequestLogging <- o .:? "detailed-logging"  .!= dev
+        appShouldLogAll           <- o .:? "should-log-all"    .!= dev
+        appReloadTemplates        <- o .:? "reload-templates"  .!= dev
+        appMutableStatic          <- o .:? "mutable-static"    .!= dev
+        appSkipCombining          <- o .:? "skip-combining"    .!= dev
+        appMailFrom               <- o .:? "mail-from"         .!= "noreply"
+        appMailSendmailBin        <- o .:? "mail-sendmail-bin" .!= "/usr/sbin/sendmail"
 
         return AppSettings {..}
 

@@ -31,20 +31,21 @@ User
     phone Text Maybe
     -- payments_id Int
     -- datejoined Day
+    -- keysrcvd Day
 
     state MemberState
     council Bool
     staff Bool
+    -- haskeys Bool
 
     UniqueUser ident
     UniqueEmail email
     deriving Typeable Show
 |]
 
--- FIXME have emails in separate table?
-newUser :: Text -> Text -> User
-newUser email verkey = User
-    { userIdent    = email
+newUser :: Text -> Text -> Text -> User
+newUser ident email verkey = User
+    { userIdent    = ident
     , userEmail    = email
     , userPassword = Nothing
     , userVerkey   = Just verkey
