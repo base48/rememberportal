@@ -1,0 +1,27 @@
+<h2>Summary
+<table .table .table-striped .table-bordered .overview-table>
+  <tr>
+    <td> Number of members:
+    <td> <a href=@{MembersAcceptedR}> #{num_total}
+  <tr>
+    <td> Number of paying members:
+    <td> #{num_paying}
+  <tr>
+    <td> Number of non-paying members:
+    <td> #{num_nonpaying}
+  <tr>
+    <td> Number of awaiting members:
+    <td> <a href=@{MembersAwaitingR}>#{num_awaiting}
+  <tr>
+    <td> Number of rejected members:
+    <td> <a href=@{MembersRejectedR}>#{num_rejected}
+  <tr>
+    <td> Number of ex members:
+    <td> <a href=@{MembersExR}>#{num_ex}
+
+<h3>Members with missing payments
+<table .table .table-striped .table-bordered .overview-table>
+  <tr>
+    <td> usr
+    <td> months
+

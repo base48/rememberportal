@@ -153,12 +153,12 @@ instance Yesod App where
                 , MenuItem
                     { menuItemLabel = "Members overview"
                     , menuItemRoute = MembersOverviewR
-                    , menuItemAccessCallback = False -- FIXME accepted||staff
+                    , menuItemAccessCallback = isJust muser -- FIXME accepted||staff
                     }
                 , MenuItem
                     { menuItemLabel = "Members list"
                     , menuItemRoute = MembersAcceptedR
-                    , menuItemAccessCallback = False -- FIXME accepted||staff
+                    , menuItemAccessCallback = isJust muser -- FIXME accepted||staff
                     }
                 , MenuItem
                     { menuItemLabel = "Finance"

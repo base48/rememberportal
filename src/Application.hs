@@ -42,16 +42,12 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
 -- Don't forget to add new modules to your cabal file!
 import Handler.Common
 import Handler.Home
+import Handler.Members
 import Handler.Profile
 
-getProfileEditR, postProfileEditR, getMembersOverviewR, getMembersAcceptedR, getMembersRejectedR, getMembersAwaitingR, getMembersExR, getPaymentsR, getAdminR :: Handler Html
+getProfileEditR, postProfileEditR, getPaymentsR, getAdminR :: Handler Html
 getProfileEditR = error "TBD"
 postProfileEditR = error "TBD"
-getMembersOverviewR = error "TBD"
-getMembersAcceptedR = error "TBD"
-getMembersRejectedR = error "TBD"
-getMembersAwaitingR = error "TBD"
-getMembersExR = error "TBD"
 getPaymentsR = error "TBD"
 getAdminR = error "TBD"
 
