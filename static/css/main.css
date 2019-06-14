@@ -1,0 +1,24 @@
+#overview {
+  height: 60px;
+}
+
+hr, .clear { clear: both; }
+
+.user-table td:last-child {
+  width: 40%;
+}
+
+.overview-table td:last-child {
+  width: 40%;
+}
+
+img.captcha {
+  top: 15px;
+  position: relative;
+}
+
+@media (max-width: 979px) {
+  .nav {
+    clear: left;
+  }
+}

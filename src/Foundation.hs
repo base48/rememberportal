@@ -76,6 +76,7 @@ mkYesodData "App" [parseRoutes|
 /accounts/members/list/rejected MembersRejectedR GET      !login
 /accounts/members/list/awaiting MembersAwaitingR GET      !login
 /accounts/members/list/ex       MembersExR       GET      !login
+
 /payments                       PaymentsR        GET      !login
 /admin                          AdminR           GET      !login
 |]
@@ -190,7 +191,6 @@ instance Yesod App where
         -- default-layout-wrapper is the entire page. Since the final
         -- value passed to hamletToRepHtml cannot be a widget, this allows
         -- you to use normal widget features in default-layout.
-
         pc <- widgetToPageContent $ do
             addStylesheet $ StaticR css_bootstrap_min_css
             addStylesheet $ StaticR css_bootstrap_responsive_min_css
