@@ -1,59 +1,6 @@
 $forall Entity _uid u <- users
   <h2> #{userIdent u}
-  <table .user-table .table .table-striped .table-bordered>
-    <tr>
-      <td>
-        Full name
-      <td>
-        #{fromMaybe "" $ userRealname u}
-    <tr>
-      <td>
-        Email
-      <td>
-        #{userEmail u}
-    <tr>
-      <td>
-        Username
-      <td>
-        #{userIdent u}
-    <tr>
-      <td>
-        Alt nick
-      <td>
-        #{fromMaybe "" $ userAltnick u}
-    <tr>
-      <td>
-        Phone
-      <td>
-        #{fromMaybe "" $ userPhone u}
-    <tr>
-      <td>
-        Membership status
-      <td>
-        $if userState u == Accepted
-          <i .icon-ok>
-        $else
-          <i .icon-remove>
-        #{show $ userState u}
-    $if userState u == Accepted
-      <tr>
-        <td>
-          Member since
-        <td>
-          TODO
-    <tr>
-      <td>
-        Member of the council
-      <td>
-        $if userCouncil u
-          <i .icon-ok>
-        $else
-          <i .icon-remove>
-    <tr>
-      <td>
-        ID for payments
-      <td>
-        TBD
+  ^{memberDetail u}
 
   <table .table .table-striped .table-bordered>
     <tr>

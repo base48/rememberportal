@@ -67,7 +67,7 @@ mkYesodData "App" [parseRoutes|
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET POST
+/ HomeR GET
 
 /accounts/profile               ProfileR         GET      !login
 /accounts/profile/edit          ProfileEditR     GET POST !login

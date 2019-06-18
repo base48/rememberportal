@@ -41,3 +41,14 @@ membersList ms = do
         $(widgetFile "members-list")
   where
     months = [1..12] :: [Int]
+
+memberDetail :: User -> Widget
+memberDetail u = $(widgetFile "members-detail")
+
+getProfileR :: Handler Html
+getProfileR = do
+    (_, user) <- requireAuthPair
+    defaultLayout $ do
+        setTitle . toHtml $ ("Your profile" :: Text)
+        let u = user
+        $(widgetFile "profile")
