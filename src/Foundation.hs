@@ -91,8 +91,7 @@ type DB a = forall (m :: * -> *).
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-    -- Controls the base of generated URLs. For more information on modifying,
-    -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
+    -- FIXME need to have approot set because of the email auth
     approot :: Approot App
     approot = ApprootRequest $ \app req ->
         case appRoot $ appSettings app of
@@ -102,9 +101,10 @@ instance Yesod App where
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
     makeSessionBackend :: App -> IO (Maybe SessionBackend)
-    makeSessionBackend _ = Just <$> defaultClientSessionBackend
-        120    -- timeout in minutes
-        "config/client_session_key.aes"
+    makeSessionBackend _ = sslOnlySessions $
+            fmap Just $ defaultClientSessionBackend sessionTimeoutMinutes keyFile
+      where
+        keyFile = "config/client_session_key.aes"
 
     -- Yesod Middleware allows you to run code before and after each handler function.
     -- The defaultYesodMiddleware adds the response header "Vary: Accept, Accept-Language" and performs authorization checks.
@@ -113,17 +113,17 @@ instance Yesod App where
     --   b) Validates that incoming write requests include that token in either a header or POST parameter.
     -- To add it, chain it together with the defaultMiddleware: yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
     -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
-    -- FIXME: force SSL
     yesodMiddleware :: ToTypedContent res => Handler res -> Handler res
-    yesodMiddleware = defaultCsrfMiddleware . defaultYesodMiddleware
+    yesodMiddleware =
+        sslOnlyMiddleware sessionTimeoutMinutes .
+        defaultCsrfMiddleware .
+        defaultYesodMiddleware
 
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
         --master <- getYesod
         mmsg <- getMessage
-
         muser <- maybeAuthPair
-        mcurrentRoute <- getCurrentRoute
 
         -- Define the menu items of the header.
         let menuItems =
@@ -178,7 +178,7 @@ instance Yesod App where
                     , menuItemAccessCallback = isNothing muser
                     }
                 , MenuItem
-                    { menuItemLabel = "Register"
+                    { menuItemLabel = "Registration"
                     , menuItemRoute = AuthR registerR
                     , menuItemAccessCallback = isNothing muser
                     }
@@ -283,10 +283,11 @@ instance YesodAuth App where
     redirectToReferer :: App -> Bool
     redirectToReferer _ = True
 
-    authenticate :: (MonadHandler m, HandlerSite m ~ App) --FIXME
+    authenticate :: (MonadHandler m, HandlerSite m ~ App)
                  => Creds App -> m (AuthenticationResult App)
-    authenticate creds = if credsPlugin creds `elem` ["email", "email-verify"]
+    authenticate creds = if credsPlugin creds `elem` ["email", "email-verify", "username"]
         then liftHandler $ runDB $ do
+            -- $logDebug $ "authenticate " <> (pack $ show creds)
             x <- getBy $ UniqueEmail $ credsIdent creds
             case x of
                 Just (Entity uid _) -> return $ Authenticated uid
@@ -294,7 +295,7 @@ instance YesodAuth App where
         else error (show creds)
 
     authPlugins :: App -> [AuthPlugin App]
-    authPlugins app = [authEmail]
+    authPlugins _ = [authEmail]
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
@@ -361,8 +362,7 @@ instance YesodAuthEmail App where
         mu <- get uid
         case mu of
             Nothing -> return Nothing
-            Just u -> do
-                -- FIXME delete verkey from DB https://github.com/yesodweb/yesod/issues/1222
+            Just _u -> do
                 update uid [UserVerified =. True, UserVerkey =. Nothing]
                 return $ Just uid
 
@@ -370,17 +370,24 @@ instance YesodAuthEmail App where
 
     setPassword uid pass = liftHandler . runDB $ update uid [UserPassword =. Just pass]
 
-    getEmailCreds email = liftHandler $ runDB $ do
-        mu <- getBy $ UniqueUser email
+    getEmailCreds intext = liftHandler $ runDB $ do
+        mu <- getBy $ UniqueEmail intext
         case mu of
-            Nothing -> return Nothing
-            Just (Entity uid u) -> return $ Just EmailCreds
-                { emailCredsId = uid
-                , emailCredsAuthId = Just uid
-                , emailCredsStatus = isJust $ userPassword u -- FIXME
-                , emailCredsVerkey = userVerkey u
-                , emailCredsEmail = email
-                }
+            Nothing -> do
+                mv <- getBy $ UniqueUser intext
+                case mv of
+                    Nothing -> return Nothing
+                    Just (Entity uid u) -> f uid u
+            Just (Entity uid u) -> f uid u
+      where
+        f uid row = return $ Just $ EmailCreds
+            { emailCredsId = uid
+            , emailCredsAuthId = Just uid
+            , emailCredsStatus = userVerified row && isJust (userPassword row)
+            , emailCredsVerkey = userVerkey row
+            , emailCredsEmail = userEmail row
+            }
+
 
     getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
 
@@ -396,18 +403,17 @@ instance YesodAuthEmail App where
         plain8 = TE.encodeUtf8 plain
         salted8 = TE.encodeUtf8 salted
 
-    --registerHandler :: AuthHandler site Html
     registerHandler = do
         (widget, enctype) <- generateFormPost registrationForm
-        toParentRoute <- getRouteToParent
+        toParent <- getRouteToParent
         authLayout $ do
             setTitleI Msg.RegisterLong
             [whamlet|
                 <p>_{Msg.EnterEmail}
-                <form .form-horizontal method="post" action="@{toParentRoute registerR}" enctype=#{enctype}>
+                <form .form-horizontal method="post" action="@{toParent registerR}" enctype=#{enctype}>
                     ^{widget}
                     <div .form-actions>
-                        <button type="submit" class="btn btn-primary">_{Msg.Register}
+                        <button type=submit .btn .btn-primary>_{Msg.Register}
             |]
       where
         registrationForm = renderBootstrap2 $ (,)
@@ -421,4 +427,27 @@ instance YesodAuthEmail App where
             fsAttrs = [("class", "form-control")]
         }
 
+    emailLoginHandler toParent = do
+        (widget, enctype) <- generateFormPost loginForm
+        [whamlet|
+            <form .form-horizontal method="post" action="@{toParent loginR}" enctype=#{enctype}>
+                    ^{widget}
+                    <div .form-actions>
+                        <button type=submit .btn .btn-primary>Login
+        |]
+      where
+        loginForm = renderBootstrap2 $ (,)
+            <$> areq textField (fs "Username" "email") Nothing
+            <*> areq passwordField (fs "Password" "password") Nothing
+        fs msg name = FieldSettings {
+            fsLabel = msg,
+            fsTooltip = Nothing,
+            fsId = Just name,
+            fsName = Just name,
+            fsAttrs = [("class", "form-control")]
+        }
+
     --setPasswordHandler = error "TBD" -- FIXME redirect to profile/edit?
+
+sessionTimeoutMinutes :: Int
+sessionTimeoutMinutes = 120
