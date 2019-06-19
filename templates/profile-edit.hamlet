@@ -1,0 +1,8 @@
+<form method=post action=@{ProfileEditR} enctype=#{enctype} .form-horizontal>
+  <div class="alert">
+    <strong>Warning!</strong> Details you provide here are visible for other members.
+    Do not add any personal details you want to keep private! Email is required.
+  ^{widget}
+
+   <div .form-actions>
+      <button type=submit .btn .btn-primary>Save

@@ -9,7 +9,7 @@
         $forall MenuItem label route _ <- navbarItems
           <li>
             <a href="@{route}">#{label}
-  $maybe msg <- mmsg
-    <div .alert.alert-info #message>#{msg}
 <div .container>
+  $forall (status, msg) <- msgs
+    <div .alert .alert-#{defAlert status}>#{msg}
   ^{widget}

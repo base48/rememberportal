@@ -1,12 +1,16 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Handler.Members where
 
 import Import
+
+import Data.Char (isDigit)
 
 getMembersOverviewR :: Handler Html
 getMembersOverviewR = do
@@ -52,3 +56,48 @@ getProfileR = do
         setTitle . toHtml $ ("Your profile" :: Text)
         let u = user
         $(widgetFile "profile")
+
+getProfileEditR :: Handler Html
+getProfileEditR = do
+    (_, user) <- requireAuthPair
+    (widget, enctype) <- generateFormPost $ memberEditForm user
+    profileEditHelper widget enctype
+
+postProfileEditR :: Handler Html
+postProfileEditR = do
+    (uid, user) <- requireAuthPair
+    ((result, widget), enctype) <- runFormPost $ memberEditForm user
+    $logDebug (pack $ show result)
+    case result of
+        FormMissing -> do
+            addMessage "danger" $ toHtml ("Form missing" :: Text)
+            redirect ProfileEditR
+        FormFailure fs -> do
+            forM_ fs (addMessage "danger" . toHtml)
+            profileEditHelper widget enctype
+        FormSuccess nu -> do
+            runDB $ replace uid nu
+            addMessage "success" "Profile updated"
+            redirect ProfileR
+
+profileEditHelper :: Widget -> Enctype -> Handler Html
+profileEditHelper widget enctype = defaultLayout $ do
+        setTitle . toHtml $ ("Edit profile" :: Text)
+        $(widgetFile "profile-edit")
+
+-- XXX Maybe User -> Form User for new users (see example)
+memberEditForm :: User -> Form User
+memberEditForm u = renderBootstrap2 $ User
+    <$> pure (userIdent u) -- ident
+    <*> areq emailField "Email" (Just $ userEmail u)
+    <*> pure (userPassword u) -- password
+    <*> pure (userVerkey u) -- verkey
+    <*> pure (userVerified u) --verified
+    <*> aopt textField "Full name" (Just (userRealname u)) -- FIXME req
+    <*> aopt textField "Alternative nick" (Just (userAltnick u))
+    <*> aopt phoneField "Phone number" (Just (userPhone u))
+    <*> pure (userState u)
+    <*> pure (userCouncil u)
+    <*> pure (userStaff u)
+  where
+    phoneField = strField 4 20 (\c -> isDigit c || c `elem` [' ', '+', '(', ')']) "Phone number"

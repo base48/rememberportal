@@ -43,11 +43,8 @@ import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
 import Handler.Common
 import Handler.Home
 import Handler.Members
-import Handler.Profile
 
-getProfileEditR, postProfileEditR, getPaymentsR, getAdminR :: Handler Html
-getProfileEditR = error "TBD"
-postProfileEditR = error "TBD"
+getPaymentsR, getAdminR :: Handler Html
 getPaymentsR = error "TBD"
 getAdminR = error "TBD"
 

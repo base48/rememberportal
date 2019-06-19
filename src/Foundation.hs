@@ -122,8 +122,8 @@ instance Yesod App where
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
         --master <- getYesod
-        mmsg <- getMessage
         muser <- maybeAuthPair
+        msgs <- getMessages
 
         -- Define the menu items of the header.
         let menuItems =
@@ -185,6 +185,7 @@ instance Yesod App where
                 ]
 
         let navbarItems = [x | x <- menuItems, menuItemAccessCallback x]
+        let defAlert x = if x == "" then "primary" else x
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -326,6 +327,15 @@ instance HasHttpManager App where
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
 
+strField :: Monad m => RenderMessage (HandlerSite m) FormMessage => Int -> Int -> (Char -> Bool) -> Text -> Field m Text
+strField minLen maxLen charPred fieldName = check f textField
+  where
+    f ident | length ident < minLen    = Left (fieldName <> ": too short" :: Text)
+            | length ident > maxLen    = Left (fieldName <> ": too long" :: Text)
+            | not $ all charPred ident = Left (fieldName <> ": invalid character" :: Text)
+            | otherwise                = Right ident
+
+
 instance YesodAuthEmail App where
     type AuthEmailId App = UserId
 
@@ -336,16 +346,7 @@ instance YesodAuthEmail App where
            ident <- runInputPost $ ireq identField "ident"
            runDB $ insert $ newUser ident email verkey
       where
-        tooShort, tooLong, badChar :: Text
-        tooShort = "Username too short"
-        tooLong = "Username too long"
-        badChar = "Username contains invalid character"
-        identField = check f textField
-        f ident | length ident < 1  = Left tooShort
-                | length ident > 30 = Left tooLong
-                | not $ all p ident = Left badChar
-                | otherwise         = Right ident
-        p c = (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_'
+        identField = strField 1 30 (\c -> (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_') "Username"
 
     sendVerifyEmail email _verkey verurl = do
         $logInfo $ "Verification URL for " <> email <> ": " <> verurl
@@ -431,9 +432,9 @@ instance YesodAuthEmail App where
         (widget, enctype) <- generateFormPost loginForm
         [whamlet|
             <form .form-horizontal method="post" action="@{toParent loginR}" enctype=#{enctype}>
-                    ^{widget}
-                    <div .form-actions>
-                        <button type=submit .btn .btn-primary>Login
+                 ^{widget}
+                 <div .form-actions>
+                     <button type=submit .btn .btn-primary>Login
         |]
       where
         loginForm = renderBootstrap2 $ (,)
