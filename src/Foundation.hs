@@ -19,7 +19,7 @@ import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
-import Data.Char            (isAlphaNum, isAscii)
+import Data.Char            (isAlphaNum, isAscii, isDigit)
 
 import Yesod.Auth.Email
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -71,14 +71,14 @@ mkYesodData "App" [parseRoutes|
 
 /accounts/profile               ProfileR         GET      !login
 /accounts/profile/edit          ProfileEditR     GET POST !login
-/accounts/members               MembersOverviewR GET      !login
-/accounts/members/list/accepted MembersAcceptedR GET      !login
-/accounts/members/list/rejected MembersRejectedR GET      !login
-/accounts/members/list/awaiting MembersAwaitingR GET      !login
-/accounts/members/list/ex       MembersExR       GET      !login
+/accounts/members               MembersOverviewR GET      !member
+/accounts/members/list/accepted MembersAcceptedR GET      !member
+/accounts/members/list/rejected MembersRejectedR GET      !member
+/accounts/members/list/awaiting MembersAwaitingR GET      !member
+/accounts/members/list/ex       MembersExR       GET      !member
 
-/payments                       PaymentsR        GET      !login
-/admin                          AdminR           GET      !login
+/payments                       PaymentsR        GET      !member
+/admin                          AdminR           GET      !staff
 |]
 
 -- | A convenient synonym for creating forms.
@@ -125,62 +125,69 @@ instance Yesod App where
         muser <- maybeAuthPair
         msgs <- getMessages
 
+        let (isLogged, isMember, isStaff) = case muser of
+                Nothing -> (False, False, False)
+                Just (_uid,  u) -> (True
+                                   , userState u == Accepted || userStaff u == True
+                                   , userStaff u == True
+                                   )
+
         -- Define the menu items of the header.
         let menuItems =
                 [ MenuItem
                     { menuItemLabel = "Logout"
                     , menuItemRoute = AuthR LogoutR
-                    , menuItemAccessCallback = isJust muser
+                    , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "View profile"
                     , menuItemRoute = ProfileR
-                    , menuItemAccessCallback = isJust muser
+                    , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Edit profile"
                     , menuItemRoute = ProfileEditR
-                    , menuItemAccessCallback = isJust muser
+                    , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Change password"
-                    , menuItemRoute = AuthR setpassR -- XXX?
-                    , menuItemAccessCallback = isJust muser
+                    , menuItemRoute = AuthR setpassR
+                    , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Administration"
                     , menuItemRoute = AdminR
-                    , menuItemAccessCallback = False -- FIXME staff
+                    , menuItemAccessCallback = isStaff
                     }
                 , MenuItem
                     { menuItemLabel = "Members overview"
                     , menuItemRoute = MembersOverviewR
-                    , menuItemAccessCallback = isJust muser -- FIXME accepted||staff
+                    , menuItemAccessCallback = isMember
                     }
                 , MenuItem
                     { menuItemLabel = "Members list"
                     , menuItemRoute = MembersAcceptedR
-                    , menuItemAccessCallback = isJust muser -- FIXME accepted||staff
+                    , menuItemAccessCallback = isMember
                     }
                 , MenuItem
                     { menuItemLabel = "Finance"
                     , menuItemRoute = PaymentsR
-                    , menuItemAccessCallback = False -- FIXME accepted||staff
+                    , menuItemAccessCallback = isMember
                     }
                 , MenuItem
                     { menuItemLabel = "Login"
                     , menuItemRoute = AuthR LoginR
-                    , menuItemAccessCallback = isNothing muser
+                    , menuItemAccessCallback = not isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Reset password"
                     , menuItemRoute = AuthR forgotPasswordR
-                    , menuItemAccessCallback = isNothing muser
+                    , menuItemAccessCallback = not isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Registration"
                     , menuItemRoute = AuthR registerR
-                    , menuItemAccessCallback = isNothing muser
+                    , menuItemAccessCallback = not isLogged
                     }
                 ]
 
@@ -215,13 +222,34 @@ instance Yesod App where
         -> Handler AuthResult
     -- Routes not requiring authentication.
     isAuthorized (AuthR _) _ = return Authorized
+    isAuthorized (StaticR _) _ = return Authorized
     isAuthorized HomeR _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
-    isAuthorized (StaticR _) _ = return Authorized
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
-    isAuthorized _ _ = isAuthenticated
+    isAuthorized route _writable
+        | "staff" `member` routeAttrs route = do
+            muser <- maybeAuthPair
+            case muser of
+                Nothing -> return AuthenticationRequired
+                Just (_, u)
+                    | userStaff u -> return Authorized
+                    | otherwise   -> return $ Unauthorized "Admin access only"
+        | "member" `member` routeAttrs route = do
+            muser <- maybeAuthPair
+            case muser of
+                Nothing -> return AuthenticationRequired
+                Just (_, u)
+                    | userStaff u             -> return Authorized
+                    | userState u == Accepted -> return Authorized
+                    | otherwise               -> return $ Unauthorized "Member access only"
+        | "login" `member` routeAttrs route = do
+            muid <- maybeAuthId
+            case muid of
+                Nothing -> return AuthenticationRequired
+                Just _  -> return Authorized
+        | otherwise = return Authorized
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -341,12 +369,20 @@ instance YesodAuthEmail App where
 
     afterPasswordRoute _ = ProfileR
 
-    addUnverified email verkey =
+    addUnverified email verkey = do
+        toParent <- getRouteToParent
         liftHandler $ do
-           ident <- runInputPost $ ireq identField "ident"
-           runDB $ insert $ newUser ident email verkey
-      where
-        identField = strField 1 30 (\c -> (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_') "Username"
+            ((result, _widget), _enctype) <- runFormPost memberNewForm
+            case result of
+                FormMissing -> do
+                    addMessage "danger" $ toHtml ("Form missing" :: Text)
+                    redirect $ toParent registerR
+                FormFailure fs -> do
+                    forM_ fs (addMessage "danger" . toHtml)
+                    redirect $ toParent registerR -- FIXME render directly?
+                FormSuccess nu -> do
+                    let withKey = nu { userVerkey = Just verkey, userEmail = email }
+                    runDB $ insert withKey
 
     sendVerifyEmail email _verkey verurl = do
         $logInfo $ "Verification URL for " <> email <> ": " <> verurl
@@ -405,36 +441,26 @@ instance YesodAuthEmail App where
         salted8 = TE.encodeUtf8 salted
 
     registerHandler = do
-        (widget, enctype) <- generateFormPost registrationForm
         toParent <- getRouteToParent
-        authLayout $ do
-            setTitleI Msg.RegisterLong
-            [whamlet|
-                <p>_{Msg.EnterEmail}
-                <form .form-horizontal method="post" action="@{toParent registerR}" enctype=#{enctype}>
-                    ^{widget}
-                    <div .form-actions>
-                        <button type=submit .btn .btn-primary>_{Msg.Register}
-            |]
-      where
-        registrationForm = renderBootstrap2 $ (,)
-            <$> areq textField (fs "Username" "ident") Nothing
-            <*> areq emailField (fs "E-mail" "email") Nothing
-        fs msg name = FieldSettings {
-            fsLabel = msg,
-            fsTooltip = Nothing,
-            fsId = Just name,
-            fsName = Just name,
-            fsAttrs = [("class", "form-control")]
-        }
+        liftHandler $ do
+            (widget, enctype) <- generateFormPost memberNewForm
+            authLayout $ do
+                setTitleI Msg.RegisterLong
+                [whamlet|
+                    <p>_{Msg.EnterEmail}
+                    <form .form-horizontal method=post action=@{toParent registerR} enctype=#{enctype}>
+                        ^{widget}
+                        <div .form-actions>
+                            <button type=submit .btn .btn-primary>_{Msg.Register}
+                |]
 
     emailLoginHandler toParent = do
         (widget, enctype) <- generateFormPost loginForm
         [whamlet|
-            <form .form-horizontal method="post" action="@{toParent loginR}" enctype=#{enctype}>
-                 ^{widget}
-                 <div .form-actions>
-                     <button type=submit .btn .btn-primary>Login
+            <form .form-horizontal method=post action=@{toParent loginR} enctype=#{enctype}>
+                ^{widget}
+                <div .form-actions>
+                    <button type=submit .btn .btn-primary>Login
         |]
       where
         loginForm = renderBootstrap2 $ (,)
@@ -445,10 +471,77 @@ instance YesodAuthEmail App where
             fsTooltip = Nothing,
             fsId = Just name,
             fsName = Just name,
-            fsAttrs = [("class", "form-control")]
+            fsAttrs = []
         }
 
-    --setPasswordHandler = error "TBD" -- FIXME redirect to profile/edit?
+    setPasswordHandler needOld = selectRep $ provideRep $ do
+        toParent <- getRouteToParent
+        liftHandler $ do
+            (widget, enctype) <- generateFormPost changeForm
+            authLayout $ do
+                setTitleI Msg.SetPassTitle
+                [whamlet|
+                    <h3>_{Msg.SetPass}
+                    <form .form-horizontal method=post action=@{toParent setpassR} enctype=#{enctype}>
+                        ^{widget}
+                        <div .form-actions>
+                            <button type=submit .btn .btn-primary>_{Msg.SetPassTitle}
+                |]
+      where
+        changeForm = renderBootstrap2 $ (,,)
+            <$> (if needOld
+                    then areq passwordField currentPasswordSettings Nothing
+                    else pure "")
+            <*> areq passwordField newPasswordSettings Nothing
+            <*> areq passwordField confirmPasswordSettings Nothing
+        currentPasswordSettings =
+             FieldSettings {
+                 fsLabel = SomeMessage Msg.CurrentPassword,
+                 fsTooltip = Nothing,
+                 fsId = Just "currentPassword",
+                 fsName = Just "current",
+                 fsAttrs = [("autofocus", "")]
+             }
+        newPasswordSettings =
+            FieldSettings {
+                fsLabel = SomeMessage Msg.NewPass,
+                fsTooltip = Nothing,
+                fsId = Just "newPassword",
+                fsName = Just "new",
+                fsAttrs = [("autofocus", ""), (":not", ""), ("needOld:autofocus", "")]
+            }
+        confirmPasswordSettings =
+            FieldSettings {
+                fsLabel = SomeMessage Msg.ConfirmPass,
+                fsTooltip = Nothing,
+                fsId = Just "confirmPassword",
+                fsName = Just "confirm",
+                fsAttrs = [("autofocus", "")]
+            }
 
 sessionTimeoutMinutes :: Int
 sessionTimeoutMinutes = 120
+
+memberNewForm :: Form User
+memberNewForm = renderBootstrap2 $ User
+    <$> areq identField "Username" Nothing
+    <*> areq emailField (fs "Email" "email") Nothing
+    <*> pure Nothing
+    <*> pure Nothing
+    <*> pure False
+    <*> aopt textField "Full name" Nothing
+    <*> aopt textField "Alternative nick" Nothing
+    <*> aopt phoneField "Phone number" Nothing
+    <*> pure Awaiting
+    <*> pure False
+    <*> pure False
+  where
+    fs msg name = FieldSettings {
+        fsLabel = msg,
+        fsTooltip = Nothing,
+        fsId = Just name,
+        fsName = Just name,
+        fsAttrs = []
+    }
+    phoneField = strField 4 20 (\c -> isDigit c || c `elem` [' ', '+', '(', ')']) "Phone number"
+    identField = strField 1 30 (\c -> (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_') "Username"
