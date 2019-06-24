@@ -6,7 +6,7 @@
 --
 -- 1. Start up GHCi
 --
--- $ stack ghci memberportal2:lib --no-load --work-dir .stack-work-devel
+-- $ stack ghci rememberportal:lib --no-load --work-dir .stack-work-devel
 --
 -- 2. Load this module
 --

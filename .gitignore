@@ -19,4 +19,4 @@ cabal.sandbox.config
 *.keter
 *~
 \#*
-memberportal2.cabal
+rememberportal.cabal

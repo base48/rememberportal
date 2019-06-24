@@ -30,5 +30,5 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
 
 database:
   # See config/test-settings.yml for an override during tests
-  database: "_env:YESOD_SQLITE_DATABASE:memberportal2.sqlite3"
+  database: "_env:YESOD_SQLITE_DATABASE:rememberportal.sqlite3"
   poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"

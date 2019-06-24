@@ -20,7 +20,7 @@ As your code changes, your site will be automatically recompiled and redeployed 
 ## Tests
 
 ```
-stack test --flag memberportal2:library-only --flag memberportal2:dev
+stack test --flag rememberportal:library-only --flag rememberportal:dev
 ```
 
 (Because `yesod devel` passes the `library-only` and `dev` flags, matching those flags means you don't need to recompile between tests and development, and it disables optimization to speed up your test compile times).
