@@ -22,7 +22,7 @@ getMembersOverviewR = do
         setTitle . toHtml $ ("Members overview" :: Text)
         $(widgetFile "members-overview")
   where
-    num_paying = 1337 :: Int
+    num_paying = 1337 :: Int -- FIXME
     num_nonpaying = 666 :: Int
 
 getMembersAcceptedR :: Handler Html
@@ -67,7 +67,7 @@ postProfileEditR :: Handler Html
 postProfileEditR = do
     (uid, user) <- requireAuthPair
     ((result, widget), enctype) <- runFormPost $ memberEditForm user
-    $logDebug (pack $ show result)
+    -- $logDebug (pack $ show result)
     case result of
         FormMissing -> do
             addMessage "danger" $ toHtml ("Form missing" :: Text)

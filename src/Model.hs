@@ -24,7 +24,7 @@ User
 
     password Text Maybe
     verkey Text Maybe -- used for resetting passwords
-    verified Bool -- FIXME fold into state?
+    verified Bool
 
     realname Text Maybe
     altnick Text Maybe
@@ -42,20 +42,3 @@ User
     UniqueEmail email
     deriving Typeable Show
 |]
-
-newUser :: Text -> Text -> Text -> User
-newUser ident email verkey = User
-    { userIdent    = ident
-    , userEmail    = email
-    , userPassword = Nothing
-    , userVerkey   = Just verkey
-    , userVerified = False
-    , userRealname = Nothing
-    , userAltnick  = Nothing
-    , userPhone    = Nothing
-    -- , userPayments_id = 666 -- FIXME
-    --, userDatejoined  = 
-    , userState    = Awaiting
-    , userCouncil  = False
-    , userStaff    = False
-    }

@@ -220,14 +220,11 @@ instance Yesod App where
         :: Route App  -- ^ The route the user is visiting.
         -> Bool       -- ^ Whether or not this is a "write" request.
         -> Handler AuthResult
-    -- Routes not requiring authentication.
     isAuthorized (AuthR _) _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized HomeR _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
-    -- the profile route requires that the user is authenticated, so we
-    -- delegate to that function
     isAuthorized route _writable
         | "staff" `member` routeAttrs route = do
             muser <- maybeAuthPair
@@ -310,7 +307,7 @@ instance YesodAuth App where
     logoutDest _ = HomeR
     -- Override the above two destinations when a Referer: header is present
     redirectToReferer :: App -> Bool
-    redirectToReferer _ = True
+    redirectToReferer _ = False
 
     authenticate :: (MonadHandler m, HandlerSite m ~ App)
                  => Creds App -> m (AuthenticationResult App)
@@ -447,8 +444,9 @@ instance YesodAuthEmail App where
             authLayout $ do
                 setTitleI Msg.RegisterLong
                 [whamlet|
-                    <p>_{Msg.EnterEmail}
                     <form .form-horizontal method=post action=@{toParent registerR} enctype=#{enctype}>
+                        <div class="alert">
+                            <strong>Warning!</strong> Details you provide here are visible for other members. Do not add any personal details you want to keep private! Email is required.
                         ^{widget}
                         <div .form-actions>
                             <button type=submit .btn .btn-primary>_{Msg.Register}
@@ -500,7 +498,7 @@ instance YesodAuthEmail App where
                  fsTooltip = Nothing,
                  fsId = Just "currentPassword",
                  fsName = Just "current",
-                 fsAttrs = [("autofocus", "")]
+                 fsAttrs = []
              }
         newPasswordSettings =
             FieldSettings {
@@ -508,7 +506,7 @@ instance YesodAuthEmail App where
                 fsTooltip = Nothing,
                 fsId = Just "newPassword",
                 fsName = Just "new",
-                fsAttrs = [("autofocus", ""), (":not", ""), ("needOld:autofocus", "")]
+                fsAttrs = []
             }
         confirmPasswordSettings =
             FieldSettings {
@@ -516,7 +514,7 @@ instance YesodAuthEmail App where
                 fsTooltip = Nothing,
                 fsId = Just "confirmPassword",
                 fsName = Just "confirm",
-                fsAttrs = [("autofocus", "")]
+                fsAttrs = []
             }
 
 sessionTimeoutMinutes :: Int
