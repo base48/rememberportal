@@ -104,7 +104,7 @@ instance Yesod App where
     makeSessionBackend _ = sslOnlySessions $
             fmap Just $ defaultClientSessionBackend sessionTimeoutMinutes keyFile
       where
-        keyFile = "config/client_session_key.aes"
+        keyFile = "client_session_key.aes"
 
     -- Yesod Middleware allows you to run code before and after each handler function.
     -- The defaultYesodMiddleware adds the response header "Vary: Accept, Accept-Language" and performs authorization checks.

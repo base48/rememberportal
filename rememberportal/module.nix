@@ -37,7 +37,11 @@ in
       environment.systemPackages = [ rememberportalPackage ];
       systemd.services.rememberportal = {
         description = "Member portal";
-        # environment = {};
+        environment = {
+          YESOD_STATIC_DIR = "${rememberportalPackage}/static/";
+          #YESOD_HOST = "localhost";
+          YESOD_PORT = "3000";
+        };
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         serviceConfig = {

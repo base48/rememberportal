@@ -49,4 +49,5 @@ mkDerivation {
   preConfigure = "hpack";
   license = "unknown";
   hydraPlatforms = stdenv.lib.platforms.none;
+  postInstall = "ln -s $out/share/*-*-*/rememberportal-*/static $out/static";
 }
