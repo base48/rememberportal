@@ -99,3 +99,16 @@ flags:
     description: Turn on development settings, like auto-reload templates.
     manual: false
     default: false
+
+extra-source-files:
+- README.md
+- config/favicon.ico
+- config/robots.txt
+- config/settings.yml
+- config/test-settings.yml
+
+data-files:
+- static/css/*
+- static/font/*
+- static/img/*
+- static/js/*
