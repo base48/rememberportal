@@ -39,8 +39,9 @@ in
         description = "Member portal";
         environment = {
           YESOD_STATIC_DIR = "${rememberportalPackage}/static/";
-          #YESOD_HOST = "localhost";
+          YESOD_HOST = "localhost";
           YESOD_PORT = "3000";
+          YESOD_IP_FROM_HEADER = "true";
         };
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
@@ -49,7 +50,7 @@ in
           WorkingDirectory = "${cfg.stateDir}";
           User = cfg.user;
           Group = cfg.group;
-          #PermissionsStartOnly = true; # needed for execStartPre etc.
+          #PermissionsStartOnly = true; # needed for startPre etc.
         };
       };
 
