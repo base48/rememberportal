@@ -29,10 +29,9 @@ sendRegEmail as email verurl = renderSendMailCustom sendmailBin sendmailOpts $ (
             , partHeaders = []
             , partContent = TLE.encodeUtf8
                 [stext|
-                    Please confirm your email address by clicking on the link below.
+Please confirm your email address by clicking on the link below.
 
-                    #{verurl}
+#{verurl}
 
-                    Thank you
-                |]
+Thank you|]
             }
