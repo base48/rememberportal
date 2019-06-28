@@ -518,6 +518,31 @@ instance YesodAuthEmail App where
                 fsAttrs = []
             }
 
+    forgotPasswordHandler = do
+        (widget, enctype) <- generateFormPost forgotPasswordForm
+        toParent <- getRouteToParent
+        authLayout $ do
+            setTitleI Msg.PasswordResetTitle
+            [whamlet|
+                <p>_{Msg.PasswordResetPrompt}
+                <form .form-horizontal method=post action=@{toParent forgotPasswordR} enctype=#{enctype}>
+                    ^{widget}
+                    <div .form-actions>
+                        <button type=submit .btn .btn-primary>_{Msg.SendPasswordResetEmail}
+            |]
+      where
+        forgotPasswordForm = renderBootstrap2 $ (,)
+            <$> areq textField emailSettings Nothing
+            <*> pure Nothing
+        emailSettings =
+            FieldSettings {
+                fsLabel = SomeMessage Msg.ProvideIdentifier,
+                fsTooltip = Nothing,
+                fsId = Just "forgotPassword",
+                fsName = Just "email",
+                fsAttrs = [("autofocus", "")]
+            }
+
 sessionTimeoutMinutes :: Int
 sessionTimeoutMinutes = 120
 
