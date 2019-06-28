@@ -1,14 +1,15 @@
-# Values formatted like "_env:YESOD_ENV_VAR_NAME:default_value" can be overridden by the specified environment variable.
+# These are COMPILE-TIME defaults. File in this format can be also passed to rememberportal binary to override options at runtime.
+
+# Values formatted like "_env:RMP_ENV_VAR_NAME:default_value" can be overridden by the specified environment variable.
 # See https://github.com/yesodweb/yesod/wiki/Configuration#overriding-configuration-values-with-environment-variables
 
-static-dir:     "_env:YESOD_STATIC_DIR:static"
-host:           "_env:YESOD_HOST:*4" # any IPv4 host
-port:           "_env:YESOD_PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
-ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
+static-dir:     "_env:RMP_STATIC_DIR:static"
+host:           "_env:RMP_HOST:*4" # any IPv4 host
+port:           "_env:RMP_PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
+ip-from-header: "_env:RMP_IP_FROM_HEADER:false"
 
 # Default behavior: determine the application root from the request headers.
-# Uncomment to set an explicit approot
-#approot:        "_env:YESOD_APPROOT:http://localhost:3000"
+approot:        "_env:RMP_APPROOT:"
 
 # By default, `yesod devel` runs in development, and built executables use
 # production settings (see below). To override this, use the following:
@@ -25,10 +26,15 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:false"
 # skip-combining: false
 # auth-dummy-login : false
 
-# NB: If you need a numeric value (e.g. 123) to parse as a String, wrap it in single quotes (e.g. "_env:YESOD_PGPASS:'123'")
+# NB: If you need a numeric value (e.g. 123) to parse as a String, wrap it in single quotes (e.g. "_env:RMP_PGPASS:'123'")
 # See https://github.com/yesodweb/yesod/wiki/Configuration#parsing-numeric-values-as-strings
 
 database:
   # See config/test-settings.yml for an override during tests
-  database: "_env:YESOD_SQLITE_DATABASE:rememberportal.sqlite3"
-  poolsize: "_env:YESOD_SQLITE_POOLSIZE:10"
+  database: "_env:RMP_SQLITE_DATABASE:rememberportal.sqlite3"
+  poolsize: "_env:RMP_SQLITE_POOLSIZE:10"
+
+org-name: "_env:RMP_ORG_NAME:memberportal"
+
+mail-sendmail-bin: "_env:RMP_SENDMAIL_BIN:/sbin/sendmail"
+mail-from: "_env:RMP_MAIL_FROM:noreply"

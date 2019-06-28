@@ -53,9 +53,11 @@ data AppSettings = AppSettings
     , appSkipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
 
+    , appOrgName                :: Text
+    -- ^ Organization name show in the title, header, etc.
+
     , appMailFrom               :: Text
     , appMailSendmailBin        :: FilePath
-    -- FIXME: email settings: from
     -- FIXME: payment settingS
     } deriving Show
 
@@ -81,8 +83,9 @@ instance FromJSON AppSettings where
         appReloadTemplates        <- o .:? "reload-templates"  .!= dev
         appMutableStatic          <- o .:? "mutable-static"    .!= dev
         appSkipCombining          <- o .:? "skip-combining"    .!= dev
-        appMailFrom               <- o .:? "mail-from"         .!= "noreply"
-        appMailSendmailBin        <- o .:? "mail-sendmail-bin" .!= "/usr/sbin/sendmail"
+        appOrgName                <- o .: "org-name"
+        appMailFrom               <- o .: "mail-from"
+        appMailSendmailBin        <- o .: "mail-sendmail-bin"
 
         return AppSettings {..}
 

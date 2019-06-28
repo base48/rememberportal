@@ -94,9 +94,9 @@ instance Yesod App where
     -- FIXME need to have approot set because of the email auth
     approot :: Approot App
     approot = ApprootRequest $ \app req ->
-        case appRoot $ appSettings app of
-            Nothing -> getApprootText guessApproot app req
-            Just root -> root
+        case fromMaybe "" $ appRoot $ appSettings app of
+            "" -> getApprootText guessApproot app req
+            root -> root
 
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
@@ -121,7 +121,7 @@ instance Yesod App where
 
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
-        --master <- getYesod
+        master <- getYesod
         muser <- maybeAuthPair
         msgs <- getMessages
 
@@ -206,6 +206,7 @@ instance Yesod App where
             addStylesheet $ StaticR css_main_css
             addScript $ StaticR js_jquery_1_7_2_min_js
             addScript $ StaticR js_bootstrap_min_js
+            let orgName = appOrgName $ appSettings master
             $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 

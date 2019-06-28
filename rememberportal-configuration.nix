@@ -11,7 +11,10 @@
       networking.hostName = "rememberportal";
       networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
-      services.rememberportal.enable = true;
+      services.rememberportal = {
+        enable = true;
+        sendmailBin = "${pkgs.msmtp}/bin/sendmail";
+      };
       services.nginx = {
         enable = true;
 
@@ -21,17 +24,19 @@
         recommendedTlsSettings = true;
 
         virtualHosts."memberportal.example.com" = {
-          default = true;
+          #default = true;
           #enableACME = true;
           #forceSSL = true;
 
           locations."/" = {
-            proxyPass = "http://127.0.0.1:3000";
+            proxyPass = "http://127.0.0.1:${toString config.services.rememberportal.port}";
           };
         };
       };
 
       environment.systemPackages = with pkgs; [ msmtp vim tmux sqlite ];
+
+      # rename msmtprc.example to msmtprc after filling out
       environment.etc."msmtprc.example" = {
         mode = "0600";
         text = ''
