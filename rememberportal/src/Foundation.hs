@@ -20,6 +20,7 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 import Data.Char            (isAlphaNum, isAscii, isDigit)
+import Data.Maybe           (fromJust)
 
 import Yesod.Auth.Email
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -69,16 +70,16 @@ mkYesodData "App" [parseRoutes|
 
 / HomeR GET
 
-/accounts/profile               ProfileR         GET      !login
-/accounts/profile/edit          ProfileEditR     GET POST !login
-/accounts/members               MembersOverviewR GET      !member
-/accounts/members/list/accepted MembersAcceptedR GET      !member
-/accounts/members/list/rejected MembersRejectedR GET      !member
-/accounts/members/list/awaiting MembersAwaitingR GET      !member
-/accounts/members/list/ex       MembersExR       GET      !member
+/accounts/profile               ProfileR           GET      !login
+/accounts/profile/edit/#UserId  ProfileEditMemberR GET POST !staff
+/accounts/members               MembersOverviewR   GET      !member
+/accounts/members/list/accepted MembersAcceptedR   GET      !member
+/accounts/members/list/rejected MembersRejectedR   GET      !member
+/accounts/members/list/awaiting MembersAwaitingR   GET      !member
+/accounts/members/list/ex       MembersExR         GET      !member
 
-/payments                       PaymentsR        GET      !member
-/admin                          AdminR           GET      !staff
+/payments                       PaymentsR          GET      !member
+/admin                          AdminR             GET      !staff
 |]
 
 -- | A convenient synonym for creating forms.
@@ -146,7 +147,7 @@ instance Yesod App where
                     }
                 , MenuItem
                     { menuItemLabel = "Edit profile"
-                    , menuItemRoute = ProfileEditR
+                    , menuItemRoute = ProfileEditMemberR $ fst $ fromJust muser
                     , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
@@ -226,6 +227,13 @@ instance Yesod App where
     isAuthorized HomeR _ = return Authorized
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
+    isAuthorized (ProfileEditMemberR memberId) _ = do
+        muser <- maybeAuthPair
+        case muser of
+            Nothing -> return AuthenticationRequired
+            Just (uid, u) | userStaff u     -> return Authorized
+                          | memberId == uid -> return Authorized
+                          | otherwise       -> return $ Unauthorized "Admin access only"
     isAuthorized route _writable
         | "staff" `member` routeAttrs route = do
             muser <- maybeAuthPair
