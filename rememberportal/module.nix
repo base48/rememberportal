@@ -25,6 +25,12 @@ in
           description = "Path to sendmail binary (see also: msmtp)";
         };
 
+        mailFrom = mkOption {
+          type = types.str;
+          default = "noreply@example.com";
+          description = "Email address to use in From: header";
+        };
+
         user = mkOption {
           type = types.str;
           default = projectName;
@@ -46,7 +52,7 @@ in
         port = mkOption {
           type = types.port;
           default = 13337;
-          description = "Port where the application listens. Note that it always listens on loopback interface because https proxy in front of it is required.";
+          description = "Port number on which the application listens. Note that it always listens on loopback interface because https proxy in front of it is required.";
         };
       };
     };
@@ -61,6 +67,7 @@ in
           RMP_PORT = "${toString cfg.port}";
           RMP_IP_FROM_HEADER = "true";
           RMP_SENDMAIL_BIN = "${cfg.sendmailBin}";
+          RMP_MAIL_FROM = "${cfg.mailFrom}";
           RMP_ORG_NAME = "${cfg.orgName}";
         };
         wantedBy = [ "multi-user.target" ];
