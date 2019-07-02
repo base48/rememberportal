@@ -7,7 +7,7 @@
 , shakespeare, stdenv, template-haskell, text, time
 , unordered-containers, vector, wai, wai-extra, wai-logger, warp
 , yaml, yesod, yesod-auth, yesod-core, yesod-form, yesod-static
-, yesod-test
+, yesod-test, yesod-bin
 }:
 mkDerivation {
   pname = "rememberportal";
@@ -34,7 +34,7 @@ mkDerivation {
     persistent persistent-sqlite persistent-template safe shakespeare
     template-haskell text time unordered-containers vector wai
     wai-extra wai-logger warp yaml yesod yesod-auth yesod-core
-    yesod-form yesod-static
+    yesod-form yesod-static yesod-bin
   ];
   testHaskellDepends = [
     aeson base bytestring case-insensitive classy-prelude
