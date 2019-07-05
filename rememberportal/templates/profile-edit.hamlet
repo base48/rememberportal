@@ -1,4 +1,4 @@
-<form method=post action=@{ProfileEditMemberR memberId} enctype=#{enctype} .form-horizontal>
+<form method=post action=@{MemberEditR memberId} enctype=#{enctype} .form-horizontal>
   <div .alert>
     <strong>Warning!</strong> Details you provide here are visible for other members.
     Do not add any personal details you want to keep private! Email is required.

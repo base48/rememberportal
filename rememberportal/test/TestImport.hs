@@ -12,6 +12,7 @@ import Database.Persist      as X hiding (get)
 import Database.Persist.Sql  (SqlPersistM, runSqlPersistMPool, rawExecute, rawSql, unSingle, connEscapeName)
 import Foundation            as X
 import Model                 as X
+import Enums                 as X
 import Test.Hspec            as X
 import Yesod.Default.Config2 (useEnv, loadYamlSettings)
 import Yesod.Auth            as X
@@ -22,8 +23,9 @@ import Yesod.Core.Unsafe     (fakeHandlerGetLogger)
 import Database.Persist.Sqlite              (sqlDatabase, mkSqliteConnectionInfo, fkEnabled, createSqlitePoolFromInfo)
 import Control.Monad.Logger                 (runLoggingT)
 import Lens.Micro                           (set)
-import Settings (appDatabaseConf)
-import Yesod.Core (messageLoggerSource)
+import Settings                             (appDatabaseConf, AppSettings(..))
+import Yesod.Core                           (messageLoggerSource)
+import Yesod.Auth.Email                     (loginR)
 
 runDB :: SqlPersistM a -> YesodExample App a
 runDB query = do
@@ -41,7 +43,8 @@ withApp = before $ do
         ["config/test-settings.yml", "config/settings.yml"]
         []
         useEnv
-    foundation <- makeFoundation settings
+    let settingsWDummyAuth = settings { appAuthDummy = True }
+    foundation <- makeFoundation settingsWDummyAuth
     wipeDB foundation
     logWare <- liftIO $ makeLogWare foundation
     return (foundation, logWare)
@@ -82,10 +85,13 @@ getTables = do
 -- Foundation.hs
 authenticateAs :: Entity User -> YesodExample App ()
 authenticateAs (Entity _ u) = do
+    get $ AuthR LoginR
     request $ do
         setMethod "POST"
-        addPostParam "ident" $ userIdent u
-        setUrl $ AuthR $ PluginR "dummy" []
+        addToken
+        addPostParam "email" $ userIdent u
+        addPostParam "password" "IGNORED"
+        setUrl $ AuthR loginR
 
 -- | Create a user.  The dummy email entry helps to confirm that foreign-key
 -- checking is switched off in wipeDB for those database backends which need it.
@@ -93,11 +99,18 @@ createUser :: Text -> YesodExample App (Entity User)
 createUser ident = runDB $ do
     user <- insertEntity User
         { userIdent = ident
-        , userPassword = Nothing
-        }
-    _ <- insert Email
-        { emailEmail = ident
-        , emailUserId = Just $ entityKey user
-        , emailVerkey = Nothing
+        , userEmail = (ident <> "@example.org")
+        , userPassword = Just "DOESNTMATTER"
+        , userVerkey = Nothing
+        , userVerified = True
+        , userRealname = Nothing
+        , userAltnick = Nothing
+        , userState = Awaiting
+        , userCouncil = False
+        , userStaff = False
+        , userPhone = Nothing
         }
     return user
+
+acceptMember :: Entity User -> YesodExample App ()
+acceptMember (Entity uid _) = runDB $ update uid [UserState =. Accepted]

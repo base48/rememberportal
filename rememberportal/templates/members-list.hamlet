@@ -1,5 +1,5 @@
 $forall Entity uid u <- users
-  <h2> #{userIdent u} ^{editLink $ ProfileEditMemberR uid}
+  <h2> #{userIdent u} ^{editLink $ MemberEditR uid}
   ^{memberDetail u}
 
   <table .table .table-striped .table-bordered>

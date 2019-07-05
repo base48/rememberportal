@@ -12,4 +12,4 @@ getHomeR = do
     maid <- maybeAuthId
     redirect $ case maid of
         Nothing -> AuthR LoginR
-        Just _ -> ProfileR
+        Just _ -> MemberProfileR

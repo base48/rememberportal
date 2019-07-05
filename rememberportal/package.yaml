@@ -78,16 +78,16 @@ executables:
       buildable: false
 
 # Test suite
-#tests:
-#  rememberportal-test:
-#    main: Spec.hs
-#    source-dirs: test
-#    ghc-options: -Wall
-#    dependencies:
-#    - rememberportal
-#    - hspec >=2.0.0
-#    - yesod-test
-#    - microlens
+tests:
+  rememberportal-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options: -Wall
+    dependencies:
+    - rememberportal
+    - hspec >=2.0.0
+    - yesod-test
+    - microlens
 
 # Define flags used by "yesod devel" to make compilation faster
 flags:

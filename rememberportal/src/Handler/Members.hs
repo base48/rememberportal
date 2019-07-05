@@ -49,8 +49,8 @@ membersList ms = do
 memberDetail :: User -> Widget
 memberDetail u = $(widgetFile "members-detail")
 
-getProfileR :: Handler Html
-getProfileR = do
+getMemberProfileR :: Handler Html
+getMemberProfileR = do
     (_, user) <- requireAuthPair
     defaultLayout $ do
         setTitle . toHtml $ ("Your profile" :: Text)
@@ -62,15 +62,15 @@ profileEditHelper memberId widget enctype = defaultLayout $ do
         setTitle . toHtml $ ("Edit profile" :: Text)
         $(widgetFile "profile-edit")
 
-getProfileEditMemberR :: UserId -> Handler Html
-getProfileEditMemberR memberId = do
+getMemberEditR :: UserId -> Handler Html
+getMemberEditR memberId = do
     (_uid, u) <- requireAuthPair
     memberData <- runDB $ get404 memberId
     (widget, enctype) <- generateFormPost $ memberEditForm (userStaff u) memberData
     profileEditHelper memberId widget enctype
 
-postProfileEditMemberR :: UserId -> Handler Html
-postProfileEditMemberR memberId = do
+postMemberEditR :: UserId -> Handler Html
+postMemberEditR memberId = do
     (uid, u) <- requireAuthPair
     memberData <- runDB $ get404 memberId
     ((result, widget), enctype) <- runFormPost $ memberEditForm (userStaff u) memberData
@@ -78,14 +78,14 @@ postProfileEditMemberR memberId = do
     case result of
         FormMissing -> do
             addMessage "danger" $ toHtml ("Form missing" :: Text)
-            redirect $ ProfileEditMemberR memberId
+            redirect $ MemberEditR memberId
         FormFailure fs -> do
             forM_ fs (addMessage "danger" . toHtml)
             profileEditHelper memberId widget enctype
         FormSuccess nu -> do
             runDB $ replace memberId nu
             addMessage "success" "Profile updated"
-            redirect $ if uid == memberId then ProfileR else MembersOverviewR
+            redirect $ if uid == memberId then MemberProfileR else MembersOverviewR
 
 -- XXX Maybe User -> Form User for new users (see example)
 memberEditForm :: Bool -> User -> Form User

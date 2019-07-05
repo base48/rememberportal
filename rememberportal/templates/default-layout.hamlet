@@ -2,7 +2,7 @@
   <div .navbar-inner>
     <div .container>
       <h3>
-        <a .brand href=@{ProfileR}>
+        <a .brand href=@{HomeR}>
           <i .icon-random>
           #{orgName}
       <ul .nav>

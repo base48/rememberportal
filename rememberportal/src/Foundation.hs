@@ -70,13 +70,13 @@ mkYesodData "App" [parseRoutes|
 
 / HomeR GET
 
-/accounts/profile               ProfileR           GET      !login
-/accounts/profile/edit/#UserId  ProfileEditMemberR GET POST !staff
-/accounts/members               MembersOverviewR   GET      !member
-/accounts/members/list/accepted MembersAcceptedR   GET      !member
-/accounts/members/list/rejected MembersRejectedR   GET      !member
-/accounts/members/list/awaiting MembersAwaitingR   GET      !member
-/accounts/members/list/ex       MembersExR         GET      !member
+/member/profile        MemberProfileR   GET      !login
+/member/edit/#UserId   MemberEditR      GET POST !staff
+/members               MembersOverviewR GET      !member
+/members/list/accepted MembersAcceptedR GET      !member
+/members/list/rejected MembersRejectedR GET      !member
+/members/list/awaiting MembersAwaitingR GET      !member
+/members/list/ex       MembersExR       GET      !member
 
 /payments                       PaymentsR          GET      !member
 /admin                          AdminR             GET      !staff
@@ -142,12 +142,12 @@ instance Yesod App where
                     }
                 , MenuItem
                     { menuItemLabel = "View profile"
-                    , menuItemRoute = ProfileR
+                    , menuItemRoute = MemberProfileR
                     , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
                     { menuItemLabel = "Edit profile"
-                    , menuItemRoute = ProfileEditMemberR $ fst $ fromJust muser
+                    , menuItemRoute = MemberEditR $ fst $ fromJust muser
                     , menuItemAccessCallback = isLogged
                     }
                 , MenuItem
@@ -222,12 +222,12 @@ instance Yesod App where
         :: Route App  -- ^ The route the user is visiting.
         -> Bool       -- ^ Whether or not this is a "write" request.
         -> Handler AuthResult
-    isAuthorized (AuthR _) _ = return Authorized
-    isAuthorized (StaticR _) _ = return Authorized
-    isAuthorized HomeR _ = return Authorized
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
-    isAuthorized (ProfileEditMemberR memberId) _ = do
+    isAuthorized (AuthR _) _              = return Authorized
+    isAuthorized (StaticR _) _            = return Authorized
+    isAuthorized HomeR _                  = return Authorized
+    isAuthorized FaviconR _               = return Authorized
+    isAuthorized RobotsR _                = return Authorized
+    isAuthorized (MemberEditR memberId) _ = do
         muser <- maybeAuthPair
         case muser of
             Nothing -> return AuthenticationRequired
@@ -373,7 +373,7 @@ strField minLen maxLen charPred fieldName = check f textField
 instance YesodAuthEmail App where
     type AuthEmailId App = UserId
 
-    afterPasswordRoute _ = ProfileR
+    afterPasswordRoute _ = MemberProfileR
 
     addUnverified email verkey = do
         toParent <- getRouteToParent
@@ -441,7 +441,11 @@ instance YesodAuthEmail App where
         pass <- PS.makePasswordWith PS.pbkdf2 plain8 expn
         return $ TE.decodeUtf8With lenientDecode pass
 
-    verifyPassword plain salted = return $ PS.verifyPasswordWith PS.pbkdf2 (2^) plain8 salted8
+    verifyPassword plain salted = do
+        master <- getYesod
+        if appAuthDummy $ appSettings master
+            then return True
+            else return $ PS.verifyPasswordWith PS.pbkdf2 (2^) plain8 salted8
       where
         plain8 = TE.encodeUtf8 plain
         salted8 = TE.encodeUtf8 salted

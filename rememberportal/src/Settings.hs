@@ -52,6 +52,8 @@ data AppSettings = AppSettings
     -- ^ Assume that files in the static dir may change after compilation
     , appSkipCombining          :: Bool
     -- ^ Perform no stylesheet/script combining
+    , appAuthDummy              :: Bool
+    -- ^ Ignore password during auth, used in tests
 
     , appOrgName                :: Text
     -- ^ Organization name show in the title, header, etc.
@@ -86,6 +88,7 @@ instance FromJSON AppSettings where
         appOrgName                <- o .: "org-name"
         appMailFrom               <- o .: "mail-from"
         appMailSendmailBin        <- o .: "mail-sendmail-bin"
+        let appAuthDummy = False
 
         return AppSettings {..}
 
