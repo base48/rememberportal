@@ -33,22 +33,51 @@
       $else
         <i .icon-remove>
       #{show $ userState u}
-  $if userState u == Accepted
+  $if userState u /= Awaiting
     <tr>
       <td>
         Member since
       <td>
-        TODO
-  <tr>
-    <td>
-      Member of the council
-    <td>
-      $if userCouncil u
-        <i .icon-ok>
-      $else
-        <i .icon-remove>
-  <tr>
-    <td>
-      ID for payments
-    <td>
-      TBD
+        #{show $ utctDay $ userDateJoined u}
+    <tr>
+      <td>
+        Member of the council
+      <td>
+        $if userCouncil u
+          <i .icon-ok>
+        $else
+          <i .icon-remove>
+    <tr>
+      <td>
+        Membership level
+      <td>
+        $maybe l <- maybeLevel
+          #{formatLevel l currency}
+        $nothing
+          <i .icon-remove>
+    <tr>
+      <td>
+        ID for payments
+      <td>
+        $maybe payId <- userPaymentsId u
+          #{payId}
+        $nothing
+          &nbsp;
+    <tr>
+      <td>
+        Keys
+      <td>
+        $if kGrant
+          $if kReturn
+            <i .icon-remove>&nbsp;
+          $else
+            <i .icon-key>&nbsp;
+        $else
+          $if kReturn
+            <b>???</b>&nbsp;
+          $else
+            <i .icon-remove>&nbsp;
+        $maybe gdate <- userKeysGranted u
+          granted: #{show $ utctDay gdate}&nbsp;
+        $maybe rdate <- userKeysReturned u
+          returned: #{show $ utctDay rdate}

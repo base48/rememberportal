@@ -1,0 +1,44 @@
+<h2>Membership levels
+<table .table .table-striped .table-bordered .overview-table>
+  <tr>
+    <th>Name
+    <th>Amount
+    <th>Active
+    <th>User-selectable
+    <th><i .icon-edit>
+  $forall (lid, l, userCount) <- levels
+    <tr>
+      <td>#{levelName l}
+      <td style="text-align:right">#{showRational $ levelAmount l} #{currency}
+      <td>
+        $if levelActive l
+          <i .icon-ok>
+        $else
+          <i .icon-remove>
+      <td>
+        $if levelUserSelectable l
+          <i .icon-ok>
+        $else
+          <i .icon-remove>
+      <td>
+        [<a href=@{MembersLevelR lid}>members (#{userCount})</a>]
+        [<a href=@{LevelEditR lid}>edit</a>]
+  <tr>
+    <td colspan=5>
+      <form method=post action=@{LevelNewR} enctype=#{newLevelEnctype} .form-horizontal>
+        ^{newLevelWidget}
+        <div .form-actions>
+          <button type=submit .btn .btn-primary>Create
+
+TODO: links to
+<ul>
+  <li> members with no level
+  <li> members with inactive level
+  <li> members with keys
+  <li> accepted members without keys
+  <li> members who had keys at some point
+
+<h2>Awaiting members
+
+<h2>Members with missing payments
+

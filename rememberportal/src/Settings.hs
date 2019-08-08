@@ -60,7 +60,8 @@ data AppSettings = AppSettings
 
     , appMailFrom               :: Text
     , appMailSendmailBin        :: FilePath
-    -- FIXME: payment settingS
+
+    , appCurrency               :: Text
     } deriving Show
 
 instance FromJSON AppSettings where
@@ -88,6 +89,7 @@ instance FromJSON AppSettings where
         appOrgName                <- o .: "org-name"
         appMailFrom               <- o .: "mail-from"
         appMailSendmailBin        <- o .: "mail-sendmail-bin"
+        appCurrency               <- o .: "currency"
         let appAuthDummy = False
 
         return AppSettings {..}

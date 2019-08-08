@@ -72,14 +72,20 @@ mkYesodData "App" [parseRoutes|
 
 /member/profile        MemberProfileR   GET      !login
 /member/edit/#UserId   MemberEditR      GET POST !staff
+
 /members               MembersOverviewR GET      !member
 /members/list/accepted MembersAcceptedR GET      !member
 /members/list/rejected MembersRejectedR GET      !member
 /members/list/awaiting MembersAwaitingR GET      !member
 /members/list/ex       MembersExR       GET      !member
+/members/list/level/#LevelId MembersLevelR GET   !member
+/members/list/nolevel  MembersNoLevelR  GET      !member
 
-/payments                       PaymentsR          GET      !member
+/payments                       PaymentsR          GET !member
+
 /admin                          AdminR             GET      !staff
+/admin/levels/new               LevelNewR          POST     !staff
+/admin/levels/edit/#LevelId     LevelEditR         GET POST !staff
 |]
 
 -- | A convenient synonym for creating forms.
@@ -386,6 +392,7 @@ instance YesodAuthEmail App where
                 FormFailure fs -> do
                     forM_ fs (addMessage "danger" . toHtml)
                     redirect $ toParent registerR -- FIXME render directly?
+                    -- registerHandler -- somehow
                 FormSuccess nu -> do
                     let withKey = nu { userVerkey = Just verkey, userEmail = email }
                     runDB $ insert withKey
@@ -568,6 +575,11 @@ memberNewForm = renderBootstrap2 $ User
     <*> aopt textField "Full name" Nothing
     <*> aopt textField "Alternative nick" Nothing
     <*> aopt phoneField "Phone number" Nothing
+    <*> pure Nothing
+    <*> pure Nothing -- FIXME allocate payments id
+    <*> lift (liftIO getCurrentTime)
+    <*> pure Nothing
+    <*> pure Nothing
     <*> pure Awaiting
     <*> pure False
     <*> pure False
@@ -581,3 +593,7 @@ memberNewForm = renderBootstrap2 $ User
     }
     phoneField = strField 4 20 (\c -> isDigit c || c `elem` [' ', '+', '(', ')']) "Phone number"
     identField = strField 1 30 (\c -> (isAlphaNum c && isAscii c) || c == '.' || c == '-' || c == '_') "Username"
+
+-- FIXME move this somewhere else
+showRational :: Rational -> Text
+showRational x = pack $ show $ fromRational x
