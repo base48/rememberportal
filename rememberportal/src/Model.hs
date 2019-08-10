@@ -33,7 +33,7 @@ User
 
     dateJoined UTCTime
     keysGranted UTCTime Maybe
-    keysReturned UTCTime Maybe default=NULL
+    keysReturned UTCTime Maybe
 
     state MemberState
     council Bool

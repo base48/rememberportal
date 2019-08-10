@@ -21,7 +21,7 @@
         $else
           <i .icon-remove>
       <td>
-        [<a href=@{MembersLevelR lid}>members (#{userCount})</a>]
+        [<a href=@{MembersLevelR lid}>members: #{userCount}</a>]
         [<a href=@{LevelEditR lid}>edit</a>]
   <tr>
     <td colspan=5>

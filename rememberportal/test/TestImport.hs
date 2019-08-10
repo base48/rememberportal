@@ -20,6 +20,8 @@ import Yesod.Test            as X
 import Yesod.Core.Unsafe     (fakeHandlerGetLogger)
 
 -- Wiping the database
+import Data.Maybe                           (fromJust)
+import Data.Time.Format
 import Database.Persist.Sqlite              (sqlDatabase, mkSqliteConnectionInfo, fkEnabled, createSqlitePoolFromInfo)
 import Control.Monad.Logger                 (runLoggingT)
 import Lens.Micro                           (set)
@@ -105,12 +107,48 @@ createUser ident = runDB $ do
         , userVerified = True
         , userRealname = Nothing
         , userAltnick = Nothing
+        , userPhone = Nothing
+        , userLevel = Nothing
+        , userPaymentsId = Nothing
+        , userDateJoined = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]
+        , userKeysGranted = Nothing
+        , userKeysReturned = Nothing
         , userState = Awaiting
         , userCouncil = False
         , userStaff = False
-        , userPhone = Nothing
         }
     return user
 
 acceptMember :: Entity User -> YesodExample App ()
 acceptMember (Entity uid _) = runDB $ update uid [UserState =. Accepted]
+
+createFixtures :: YesodExample App ()
+createFixtures = do
+    l1@(Entity lid1 _) <- runDB $ insertEntity Level { levelName = "Regular member",    levelAmount = 500,  levelActive = True, levelUserSelectable = True }
+    l2@(Entity lid2 _) <- runDB $ insertEntity Level { levelName = "Regular member 1k", levelAmount = 1000, levelActive = True, levelUserSelectable = True }
+    l3@(Entity lid3 _) <- runDB $ insertEntity Level { levelName = "Regular member 2k", levelAmount = 2000, levelActive = True, levelUserSelectable = True }
+    l4@(Entity lid4 _) <- runDB $ insertEntity Level { levelName = "Student member",    levelAmount = 300,  levelActive = True, levelUserSelectable = False }
+
+    u1@(Entity uid1 _) <- createUser "admin"
+    u2@(Entity uid2 _) <- createUser "council"
+    u3@(Entity uid3 _) <- createUser "member1"
+    u4@(Entity uid4 _) <- createUser "member2"
+    u5@(Entity uid5 _) <- createUser "awaiting"
+
+    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+
+    runDB $ do
+        update uid1 [UserState =. Accepted, UserStaff =. True,   UserLevel =. Just lid3, UserKeysGranted =. Just adate]
+        update uid2 [UserState =. Accepted, UserCouncil =. True, UserLevel =. Just lid1, UserKeysGranted =. Just adate]
+        update uid3 [UserState =. Accepted, UserLevel =. Just lid4, UserKeysGranted =. Just adate]
+        update uid4 [UserState =. Accepted, UserLevel =. Just lid1, UserKeysGranted =. Just adate]
+
+    return ()
+  where
+    -- createLevel l = runDB $ insertEntity l
+    --createPayment :: Payment -> YesodExample App ()
+    --createPayment p = runDB $ (insertEntity p >> return ())
+    adate = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]

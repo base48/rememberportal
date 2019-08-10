@@ -81,7 +81,9 @@ mkYesodData "App" [parseRoutes|
 /members/list/level/#LevelId MembersLevelR GET   !member
 /members/list/nolevel  MembersNoLevelR  GET      !member
 
-/payments                       PaymentsR          GET !member
+/payments                       PaymentsR       GET      !member
+/payments/#UserId               PaymentsMemberR GET      !member
+/payments/edit/#PaymentId       PaymentsEditR   GET POST !staff
 
 /admin                          AdminR             GET      !staff
 /admin/levels/new               LevelNewR          POST     !staff
@@ -465,7 +467,7 @@ instance YesodAuthEmail App where
                 setTitleI Msg.RegisterLong
                 [whamlet|
                     <form .form-horizontal method=post action=@{toParent registerR} enctype=#{enctype}>
-                        <div class="alert">
+                        <div .alert>
                             <strong>Warning!</strong> Details you provide here are visible for other members. Do not add any personal details you want to keep private! Email is required.
                         ^{widget}
                         <div .form-actions>
