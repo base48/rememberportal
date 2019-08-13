@@ -1,0 +1,14 @@
+<h2>Summary</h2>
+<table .table .table-striped .table-bordered .overview-table>
+  <tr>
+    <td> Account balance:
+    <td>
+      $if False
+        <span .label .label-success>TBD
+      $else
+        <span .label .label-important>TBD
+
+<h3>Payments</h3>
+<table .table .table-striped .table-bordered>
+  $forall p <- payments
+    ^{paymentRow isStaff userMap p}

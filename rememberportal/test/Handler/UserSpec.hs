@@ -137,6 +137,7 @@ spec = withApp $ do
                 byLabelExact "State" "1"
                 byLabelExact "Email" "bar@example.com"
                 byLabelExact "Phone number" "%2B420606000666"
+                byLabelExact "Date joined" "2019-07-05"
                 setUrl $ MemberEditR ouid
             printBody
             statusIs 303
@@ -144,3 +145,6 @@ spec = withApp $ do
             mnu <- runDB $ getBy $ UniqueUser "bar"
             let (Just (Entity _ nu)) = mnu
             assertEq "phone number was updated" (Just "+420606000666") (userPhone nu)
+
+        it "creates fixtures" $ do
+            createFixtures

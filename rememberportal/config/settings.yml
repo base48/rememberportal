@@ -38,3 +38,4 @@ org-name: "_env:RMP_ORG_NAME:memberportal"
 
 mail-sendmail-bin: "_env:RMP_SENDMAIL_BIN:/sbin/sendmail"
 mail-from: "_env:RMP_MAIL_FROM:noreply"
+currency: "_env:RMP_CURRENCY:BTC"

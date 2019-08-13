@@ -1,0 +1,10 @@
+<h2>Edit payment</h2>
+
+<table .table .table-striped .table-bordered>
+  ^{paymentRow False userMap (Entity pid p)}
+  <tr>
+    <td colspan=8>
+      <form method=post action=@{PaymentsEditR pid} enctype=#{enctype} .form-horizontal>
+        ^{widget}
+         <div .form-actions>
+            <button type=submit .btn .btn-primary>Update

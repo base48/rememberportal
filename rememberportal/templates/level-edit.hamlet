@@ -1,0 +1,4 @@
+<form method=post action=@{LevelEditR lid} enctype=#{enctype} .form-horizontal>
+  ^{widget}
+   <div .form-actions>
+      <button type=submit .btn .btn-primary>Save

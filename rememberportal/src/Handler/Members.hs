@@ -14,10 +14,10 @@ import Data.Char (isDigit)
 
 getMembersOverviewR :: Handler Html
 getMembersOverviewR = do
-    num_total <- runDB $ count [UserState ==. Accepted]
-    num_awaiting <- runDB $ count [UserState ==. Awaiting]
-    num_ex <- runDB $ count [UserState ==. Exmember]
-    num_rejected <- runDB $ count [UserState ==. Rejected]
+    num_total <- countMembers [UserState ==. Accepted]
+    num_awaiting <- countMembers [UserState ==. Awaiting]
+    num_ex <- countMembers [UserState ==. Exmember]
+    num_rejected <- countMembers [UserState ==. Rejected]
     defaultLayout $ do
         setTitle . toHtml $ ("Members overview" :: Text)
         $(widgetFile "members-overview")
@@ -26,28 +26,50 @@ getMembersOverviewR = do
     num_nonpaying = 666 :: Int
 
 getMembersAcceptedR :: Handler Html
-getMembersAcceptedR = membersList Accepted
+getMembersAcceptedR = membersList [UserState ==. Accepted]
 
 getMembersRejectedR :: Handler Html
-getMembersRejectedR = membersList Rejected
+getMembersRejectedR = membersList [UserState ==. Rejected]
 
 getMembersAwaitingR :: Handler Html
-getMembersAwaitingR = membersList Awaiting
+getMembersAwaitingR = membersList [UserState ==. Awaiting]
 
 getMembersExR :: Handler Html
-getMembersExR = membersList Exmember
+getMembersExR = membersList [UserState ==. Exmember]
 
-membersList :: MemberState -> Handler Html
-membersList ms = do
-    users <- runDB $ selectList [UserState ==. ms] [Asc UserIdent]
+getMembersLevelR :: LevelId -> Handler Html
+getMembersLevelR lid = membersList [UserLevel ==. Just lid]
+
+getMembersNoLevelR :: Handler Html
+getMembersNoLevelR = membersList [UserState ==. Accepted, UserLevel ==. Nothing]
+
+getMembersKeysR :: Handler Html
+getMembersKeysR = membersList [UserKeysGranted !=. Nothing, UserKeysReturned ==. Nothing]
+
+getMembersNoKeysR :: Handler Html
+getMembersNoKeysR = membersList [UserState ==. Accepted, UserKeysGranted ==. Nothing]
+
+membersList :: [Filter User] -> Handler Html
+membersList filt = do
+    users <- runDB $ selectList filt [Asc UserIdent]
     defaultLayout $ do
         setTitle . toHtml $ ("Member list" :: Text)
         $(widgetFile "members-list")
   where
     months = [1..12] :: [Int]
 
+countMembers :: [Filter User] -> Handler Int
+countMembers filt = runDB $ count filt
+
 memberDetail :: User -> Widget
-memberDetail u = $(widgetFile "members-detail")
+memberDetail u = do
+    maybeLevel <- liftHandler $ case userLevel u of
+            Nothing    -> return Nothing
+            Just lvlId -> do (runDB $ get404 lvlId) >>= return . Just
+    currency <- liftHandler $ getYesod >>= return . appCurrency . appSettings
+    let kGrant = isJust $ userKeysGranted u
+    let kReturn = isJust $ userKeysReturned u
+    $(widgetFile "members-detail")
 
 getMemberProfileR :: Handler Html
 getMemberProfileR = do
@@ -64,16 +86,15 @@ profileEditHelper memberId widget enctype = defaultLayout $ do
 
 getMemberEditR :: UserId -> Handler Html
 getMemberEditR memberId = do
-    (_uid, u) <- requireAuthPair
-    memberData <- runDB $ get404 memberId
-    (widget, enctype) <- generateFormPost $ memberEditForm (userStaff u) memberData
+    form <- memberEditForm memberId
+    (widget, enctype) <- generateFormPost form
     profileEditHelper memberId widget enctype
 
 postMemberEditR :: UserId -> Handler Html
 postMemberEditR memberId = do
-    (uid, u) <- requireAuthPair
-    memberData <- runDB $ get404 memberId
-    ((result, widget), enctype) <- runFormPost $ memberEditForm (userStaff u) memberData
+    (uid, _u) <- requireAuthPair
+    form <- memberEditForm memberId
+    ((result, widget), enctype) <- runFormPost form
     -- $logDebug (pack $ show result)
     case result of
         FormMissing -> do
@@ -87,9 +108,19 @@ postMemberEditR memberId = do
             addMessage "success" "Profile updated"
             redirect $ if uid == memberId then MemberProfileR else MembersOverviewR
 
--- XXX Maybe User -> Form User for new users (see example)
-memberEditForm :: Bool -> User -> Form User
-memberEditForm isStaff u = renderBootstrap2 $ User
+memberEditForm :: UserId -> Handler (Form User)
+memberEditForm memberId = do
+    (_uid, u) <- requireAuthPair
+    master <- getYesod
+    let currency = appCurrency $ appSettings master
+    (memberData, levels) <- runDB $ do
+        m <- get404 memberId
+        l <- selectList [LevelActive ==. True] [Asc LevelAmount]
+        return (m, l)
+    return $ memberEditForm' (userStaff u) levels currency memberData
+
+memberEditForm' :: Bool -> [Entity Level] -> Text -> User -> Form User
+memberEditForm' isStaff levels currency u = renderBootstrap2 $ User
     <$> (if isStaff
             then areq textField "Nick" (Just $ userIdent u)
             else pure (userIdent u))
@@ -103,6 +134,22 @@ memberEditForm isStaff u = renderBootstrap2 $ User
     <*> aopt textField "Alternative nick" (Just $ userAltnick u)
     <*> aopt phoneField "Phone number" (Just $ userPhone u)
     <*> (if isStaff
+            then aopt levelField "Membership level" (Just $ userLevel u)
+            else pure (userLevel u))
+    <*> (if isStaff
+            then aopt intField "Payments ID" (Just $ userPaymentsId u)
+            else pure (userPaymentsId u)) -- paymentsId
+    -- FIXME why the FUCK is dayField using month/day/year format ...
+    <*> (if isStaff
+            then dayToUTC <$> (areq dayField "Date joined" (Just $ utctDay $ userDateJoined u))
+            else pure (userDateJoined u))
+    <*> (if isStaff
+            then (fmap dayToUTC) <$> (aopt dayField "Keys granted" (Just $ utctDay <$> userKeysGranted u))
+            else pure (userKeysGranted u))
+    <*> (if isStaff
+            then (fmap dayToUTC) <$> (aopt dayField "Keys returned" (Just $ utctDay <$> userKeysReturned u))
+            else pure (userKeysReturned u))
+    <*> (if isStaff
             then areq (selectField optionsEnum) "State" (Just $ userState u)
             else pure (userState u))
     <*> (if isStaff
@@ -113,6 +160,18 @@ memberEditForm isStaff u = renderBootstrap2 $ User
             else pure (userStaff u))
   where
     phoneField = strField 4 20 (\c -> isDigit c || c `elem` [' ', '+', '(', ')']) "Phone number"
+    dayToUTC day = UTCTime day 0
+    levelField = selectFieldList $ map (\(Entity lid lvl) -> (formatLevel lvl currency, lid)) levels
+
+formatLevel :: Level -> Text -> Text
+formatLevel lvl currency = levelName lvl <> " [" <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"
+
+{-
+getMaybeLevel :: User -> Handler (Maybe Level)
+getMaybeLevel user = case userLevel user of
+            Nothing    -> return Nothing
+            Just lvlId -> (runDB $ get404 lvlId) >>= return . Just
+-}
 
 editLink :: Route App -> Widget
 editLink route = do

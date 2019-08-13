@@ -1,0 +1,39 @@
+<h2>Members overview
+<ul>
+  <li> <a href=@{MembersAwaitingR}>awaiting members: </a>#{num_awaiting}
+  <li> <a href=@{MembersNoLevelR}>members with no level: </a>#{num_nolevel}
+  <li> <a href=@{MembersNoKeysR}>accepted members without keys: </a>#{num_nokeys}
+  <li> <a href=@{MembersKeysR}>members with keys: </a>#{num_keys}
+
+<hr>
+<h2>Membership levels
+<table .table .table-striped .table-bordered .overview-table>
+  <tr>
+    <th>Name
+    <th>Amount
+    <th>Active
+    <th>User-selectable
+    <th><i .icon-edit>
+  $forall (lid, l, userCount) <- levels
+    <tr>
+      <td>#{levelName l}
+      <td style="text-align:right">#{showRational $ levelAmount l} #{currency}
+      <td>
+        $if levelActive l
+          <i .icon-ok>
+        $else
+          <i .icon-remove>
+      <td>
+        $if levelUserSelectable l
+          <i .icon-ok>
+        $else
+          <i .icon-remove>
+      <td>
+        [<a href=@{MembersLevelR lid}>members: #{userCount}</a>]
+        [<a href=@{LevelEditR lid}>edit</a>]
+  <tr>
+    <td colspan=5>
+      <form method=post action=@{LevelNewR} enctype=#{newLevelEnctype} .form-horizontal>
+        ^{newLevelWidget}
+        <div .form-actions>
+          <button type=submit .btn .btn-primary>Create
