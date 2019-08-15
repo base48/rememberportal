@@ -135,20 +135,30 @@ createFixtures = do
     u4@(Entity uid4 _) <- createUser "member2"
     u5@(Entity uid5 _) <- createUser "awaiting"
 
-    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-    runDB $ insertEntity Payment { paymentUser = Just uid3, paymentDate = adate, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+    runDB $ do
+        update uid1 [UserState =. Accepted, UserStaff =. True,   UserLevel =. Just lid3, UserKeysGranted =. Just month1]
+        update uid2 [UserState =. Accepted, UserCouncil =. True, UserLevel =. Just lid1, UserKeysGranted =. Just month1]
+        update uid3 [UserState =. Accepted, UserLevel =. Just lid4, UserKeysGranted =. Just month1]
+        update uid4 [UserState =. Accepted, UserLevel =. Just lid1, UserKeysGranted =. Just month1]
 
     runDB $ do
-        update uid1 [UserState =. Accepted, UserStaff =. True,   UserLevel =. Just lid3, UserKeysGranted =. Just adate]
-        update uid2 [UserState =. Accepted, UserCouncil =. True, UserLevel =. Just lid1, UserKeysGranted =. Just adate]
-        update uid3 [UserState =. Accepted, UserLevel =. Just lid4, UserKeysGranted =. Just adate]
-        update uid4 [UserState =. Accepted, UserLevel =. Just lid1, UserKeysGranted =. Just adate]
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month1, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month2, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month3, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month4, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+
+    runDB $ do
+        insertEntity Fee { feeUser = uid3, feeLevel = lid4, feePeriodStart = month1, feeAmount = 300 }
+        insertEntity Fee { feeUser = uid3, feeLevel = lid4, feePeriodStart = month2, feeAmount = 300 }
+        insertEntity Fee { feeUser = uid3, feeLevel = lid4, feePeriodStart = month3, feeAmount = 300 }
+        insertEntity Fee { feeUser = uid3, feeLevel = lid4, feePeriodStart = month4, feeAmount = 300 }
 
     return ()
   where
     -- createLevel l = runDB $ insertEntity l
     --createPayment :: Payment -> YesodExample App ()
     --createPayment p = runDB $ (insertEntity p >> return ())
-    adate = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]
+    month1 = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]
+    month2 = fromJust $ buildTime defaultTimeLocale [('Y', "2000"), ('m', "2")]
+    month3 = fromJust $ buildTime defaultTimeLocale [('Y', "2000"), ('m', "3")]
+    month4 = fromJust $ buildTime defaultTimeLocale [('Y', "2000"), ('m', "4")]

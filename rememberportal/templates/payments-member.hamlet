@@ -1,11 +1,17 @@
-<h2>Summary</h2>
 <table .table .table-striped .table-bordered .overview-table>
   <tr>
-    <td> Account balance:
+    <td> Balance
     <td>
-      ^{balanceWidget 0.1}
+      ^{balanceWidget balance}
 
-<h3>Payments</h3>
+<h3>Fees
+
+<table .table .table-striped .table-bordered>
+  $forall row <- fees
+    ^{feeRow levelMap row}
+
+<h3>Payments
+
 <table .table .table-striped .table-bordered>
   $forall p <- payments
     ^{paymentRow isStaff userMap p}

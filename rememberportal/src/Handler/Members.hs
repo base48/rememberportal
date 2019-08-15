@@ -11,6 +11,7 @@ module Handler.Members where
 import Import
 
 import Data.Char (isDigit)
+import Handler.Payments
 
 getMembersOverviewR :: Handler Html
 getMembersOverviewR = do
@@ -61,8 +62,8 @@ membersList filt = do
 countMembers :: [Filter User] -> Handler Int
 countMembers filt = runDB $ count filt
 
-memberDetail :: User -> Widget
-memberDetail u = do
+memberDetail :: UserId -> User -> Widget
+memberDetail uid u = do
     maybeLevel <- liftHandler $ case userLevel u of
             Nothing    -> return Nothing
             Just lvlId -> do (runDB $ get404 lvlId) >>= return . Just
@@ -70,10 +71,14 @@ memberDetail u = do
     let kGrant = isJust $ userKeysGranted u
     let kReturn = isJust $ userKeysReturned u
     $(widgetFile "members-detail")
+  where
+    veryInefficientBalance = do --
+        b <- liftHandler $ memberBalance uid
+        balanceWidget b
 
 getMemberProfileR :: Handler Html
 getMemberProfileR = do
-    (_, user) <- requireAuthPair
+    (uid, user) <- requireAuthPair
     defaultLayout $ do
         setTitle . toHtml $ ("Your profile" :: Text)
         let u = user
@@ -166,16 +171,12 @@ memberEditForm' isStaff levels currency u = renderBootstrap2 $ User
 formatLevel :: Level -> Text -> Text
 formatLevel lvl currency = levelName lvl <> " [" <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"
 
-{-
-getMaybeLevel :: User -> Handler (Maybe Level)
-getMaybeLevel user = case userLevel user of
-            Nothing    -> return Nothing
-            Just lvlId -> (runDB $ get404 lvlId) >>= return . Just
--}
-
 editLink :: Route App -> Widget
-editLink route = do
+editLink = staffLink "edit"
+
+staffLink :: Text -> Route App -> Widget
+staffLink text route = do
     (_, u) <- handlerToWidget $ requireAuthPair
     if userStaff u
-        then [whamlet|[<a href=@{route}>edit</a>]|]
+        then [whamlet|[<a href=@{route}>#{text}</a>]|]
         else [whamlet||]

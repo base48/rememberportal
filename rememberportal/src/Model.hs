@@ -54,15 +54,6 @@ Payment
     identification Text
 
     json ByteString -- full payment data
---
---  paymentType Text
---  csym Text Maybe
---  vsym Text Maybe
---  ssym Text Maybe
---  identification Text
---  message Text
---  parsed Text
---  correctionRequired Bool
 
     deriving Typeable Show
 

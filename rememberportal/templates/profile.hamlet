@@ -1,4 +1,4 @@
 <h2>Your profile</h2>
-^{memberDetail u}
+^{memberDetail uid u}
 
 <!-- payments go here -->

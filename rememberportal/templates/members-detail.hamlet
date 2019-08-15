@@ -57,6 +57,11 @@
           <i .icon-remove>
     <tr>
       <td>
+        Membership fees balance
+      <td>
+        ^{veryInefficientBalance} <a href=@{PaymentsMemberR uid}>payments</a>
+    <tr>
+      <td>
         Keys
       <td>
         $if kGrant

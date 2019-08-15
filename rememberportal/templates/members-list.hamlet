@@ -1,6 +1,6 @@
 $forall Entity uid u <- users
-  <h2> #{userIdent u} ^{editLink $ MemberEditR uid}
-  ^{memberDetail u}
+  <h2> #{userIdent u} ^{editLink $ MemberEditR uid}^{staffLink "payments" (PaymentsMemberR uid)}
+  ^{memberDetail uid u}
 
   <table .table .table-striped .table-bordered>
     <tr>

@@ -24,11 +24,19 @@ getPaymentsR = do
         $(widgetFile "payments")
 
 getPaymentsMemberR :: UserId -> Handler Html
-getPaymentsMemberR uid = do
+getPaymentsMemberR memberId = do
+    isStaff <- do
+        (_uid, u) <- requireAuthPair
+        return $ userStaff u
+    m <- runDB $ get404 memberId
+    payments <- runDB $ selectList [PaymentUser ==. Just memberId] []
+    fees <- runDB $ selectList [FeeUser ==. memberId] []
+    let userMap = Map.singleton memberId $ userIdent m
+    levelMap <- getLevelMap
+    let balance = memberBalance' fees payments
     defaultLayout $ do
-        setTitle . toHtml $ ("Payments for FIXME" :: Text)
-        error "TBD"
-        -- $(widgetFile "payments") -- FIXME
+        setTitle . toHtml $ ("Payments for " <> (tshow $ userIdent m))
+        $(widgetFile "payments-member")
 
 getPaymentsEditR :: PaymentId -> Handler Html
 getPaymentsEditR pid = do
@@ -63,7 +71,6 @@ paymentsEditHelper pid p widget enctype = do
 
 paymentRow :: Bool -> Map UserId Text -> Entity Payment -> Widget
 paymentRow isStaff userMap (Entity pid p) = do
-    currency <- liftHandler $ getYesod >>= return . appCurrency . appSettings
     [whamlet|
       <tr>
         <td>#{show $ utctDay $ paymentDate p}
@@ -72,9 +79,9 @@ paymentRow isStaff userMap (Entity pid p) = do
         <td>#{paymentRemoteAccount p}
         <td style="text-align:right">
           $if amount > 0
-            <span .label .label-success>#{showRational amount} #{currency}
+            <span .label .label-success>#{showRational amount} ^{currencyWidget}
           $else
-            <span .label .label-important>#{showRational amount} #{currency}
+            <span .label .label-important>#{showRational amount} ^{currencyWidget}
         <td>#{paymentIdentification p}
         <td>TBD format details
         <td>
@@ -89,6 +96,18 @@ paymentRow isStaff userMap (Entity pid p) = do
     amount = paymentAmount p
     username uid = fromMaybe ("UNKNOWN ID " <> tshow uid) $ Map.lookup uid userMap
 
+feeRow :: Map LevelId Text -> Entity Fee -> Widget
+feeRow levelMap (Entity _fid f) = do
+    [whamlet|
+      <tr>
+        <td> #{show $ utctDay $ feePeriodStart f}
+        <td> #{levelname $ feeLevel f}
+        <td style="text-align:right">
+          <span .label .label-success>#{showRational $ feeAmount f} ^{currencyWidget}
+    |]
+  where
+    levelname lid = fromMaybe ("UNKNOWN ID " <> tshow lid) $ Map.lookup lid levelMap
+
 getUserList :: Handler [Entity User]
 getUserList = do
     members <- runDB $ selectList ([] :: [Filter User]) []
@@ -98,6 +117,11 @@ getUserMap :: Handler (Map UserId Text)
 getUserMap = do
     members <- getUserList
     return $ Map.fromList $ map (\(Entity uid u) -> (uid, userIdent u)) members
+
+getLevelMap :: Handler (Map LevelId Text)
+getLevelMap = do
+    lvls <- runDB $ selectList ([] :: [Filter Level]) []
+    return $ Map.fromList $ map (\(Entity lid l) -> (lid, levelName l)) lvls
 
 paymentForm :: [Entity User] -> Payment -> Form Payment
 paymentForm userList p = renderBootstrap2 $ Payment
@@ -111,3 +135,27 @@ paymentForm userList p = renderBootstrap2 $ Payment
     <*> (pure $ paymentJson p)
   where
     userSelect = selectFieldList $ map (\(Entity uid u) -> (userIdent u, uid)) userList
+
+-- XXX optimizable
+memberBalance :: UserId -> Handler Rational
+memberBalance memberId = do
+    payments <- runDB $ selectList [PaymentUser ==. Just memberId] []
+    fees <- runDB $ selectList [FeeUser ==. memberId] []
+    return $ memberBalance' fees payments
+
+memberBalance' :: [Entity Fee] -> [Entity Payment] -> Rational
+memberBalance' fees payments = total_p - total_f
+  where
+    total_p = sum $ map (\(Entity _pid p) -> paymentAmount p) payments
+    total_f = sum $ map (\(Entity _fid f) -> feeAmount f) fees
+
+currencyWidget :: Widget
+currencyWidget = do
+    currency <- handlerToWidget $ getYesod >>= return . appCurrency . appSettings
+    [whamlet|#{currency}|]
+
+balanceWidget :: Rational -> Widget
+balanceWidget balance = do
+    currency <- handlerToWidget $ getYesod >>= return . appCurrency . appSettings
+    let sigcl = if balance > 0 then "label-success" else "label-important" :: Text
+    [whamlet|<span .label class=#{sigcl}>#{showRational balance} #{currency}|]
