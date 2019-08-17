@@ -34,6 +34,7 @@
         };
       };
 
+      security.acme.production = false;
       environment.systemPackages = with pkgs; [ msmtp vim tmux sqlite ];
 
       # rename msmtprc.example to msmtprc after filling out

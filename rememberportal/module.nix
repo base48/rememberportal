@@ -6,7 +6,27 @@ let
   cfg = config.services.rememberportal;
   rememberportalPackage = import ./. {}; # FIXME inherit pkgs?
   projectName = "rememberportal";
-  varLibState = "/var/lib/${projectName}";
+  stateDir = "/var/lib/${projectName}";
+  user = projectName;
+  group = projectName;
+
+  env = {
+    RMP_STATIC_DIR = "${rememberportalPackage}/static/";
+    RMP_HOST = "127.0.0.1";
+    RMP_PORT = "${toString cfg.port}";
+    RMP_IP_FROM_HEADER = "true";
+    RMP_SENDMAIL_BIN = cfg.sendmailBin;
+    RMP_MAIL_FROM = cfg.mailFrom;
+    RMP_ORG_NAME = cfg.orgName;
+    RMP_CURRENCY = cfg.currency;
+  };
+  srv = name: {
+    ExecStart = "${rememberportalPackage}/bin/${name}";
+    WorkingDirectory = stateDir;
+    User = user;
+    Group = group;
+    #PermissionsStartOnly = true; # needed for startPre etc.
+  };
 in
   {
     options = {
@@ -31,22 +51,10 @@ in
           description = "Email address to use in From: header";
         };
 
-        user = mkOption {
+        currency = mkOption {
           type = types.str;
-          default = projectName;
-          description = "User for the daemon.";
-        };
-
-        group = mkOption {
-          type = types.str;
-          default = projectName;
-          description = "Group for the daemon.";
-        };
-
-        stateDir = mkOption {
-          type = types.path;
-          default = varLibState;
-          description = "State directory of the daemon.";
+          default = "BTC";
+          description = "Membership fees currency";
         };
 
         port = mkOption {
@@ -59,38 +67,45 @@ in
 
     config = mkIf cfg.enable {
       environment.systemPackages = [ rememberportalPackage ];
-      systemd.services.rememberportal = {
-        description = "Member portal";
-        environment = {
-          RMP_STATIC_DIR = "${rememberportalPackage}/static/";
-          RMP_HOST = "127.0.0.1";
-          RMP_PORT = "${toString cfg.port}";
-          RMP_IP_FROM_HEADER = "true";
-          RMP_SENDMAIL_BIN = "${cfg.sendmailBin}";
-          RMP_MAIL_FROM = "${cfg.mailFrom}";
-          RMP_ORG_NAME = "${cfg.orgName}";
+      systemd.services = {
+        rememberportal = {
+          description = "Member portal";
+          environment = env;
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network.target" ];
+          serviceConfig = srv "rememberportal";
         };
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ];
-        serviceConfig = {
-          ExecStart = "${rememberportalPackage}/bin/rememberportal";
-          WorkingDirectory = "${cfg.stateDir}";
-          User = cfg.user;
-          Group = cfg.group;
-          #PermissionsStartOnly = true; # needed for startPre etc.
+
+        rememberportal-create-fees = {
+          description = "Member portal fees task";
+          environment = env;
+          after = [ "rememberportal.service" ];
+          requires = [ "rememberportal.service" ];
+          serviceConfig = srv "rememberportal-create-fees";
         };
       };
 
-      users.users = optionalAttrs (cfg.user == projectName) (singleton {
+      systemd.timers = {
+        rememberportal-create-fees = {
+          description = "Periodically insert new membership fees";
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "monthly";
+            Persistent = true;
+          };
+        };
+      };
+
+      users.users = (singleton {
         isSystemUser = true;
         name = projectName;
-        group = cfg.group;
-        home = cfg.stateDir;
-        createHome = (cfg.stateDir == varLibState);
+        group = group;
+        home = stateDir;
+        createHome = true;
         description = "User for ${projectName} daemon";
       });
 
-      users.groups = optionalAttrs (cfg.group == projectName) (singleton {
+      users.groups = (singleton {
         name = projectName;
       });
 

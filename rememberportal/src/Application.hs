@@ -185,7 +185,15 @@ shutdownApp _ = return ()
 -- | Run a handler
 handler :: Handler a -> IO a
 handler h = do
-    settings <- getAppSettings
+    -- FIXME loadYamlSettingsArgs loads configuration from files passed as arguments
+    --       that won't work when some kind of argument handling is added to cli apps
+    --       also sux when `handler` is used multiple times in main i guess
+    settings <- loadYamlSettingsArgs -- FIXME args?
+        -- fall back to compile-time values, set to [] to require values at runtime
+        [configSettingsYmlValue]
+
+        -- allow environment variables to override
+        useEnv
     let settings' = settings { appShouldLogAll = True }
     makeFoundation settings' >>= flip unsafeHandler h
 
