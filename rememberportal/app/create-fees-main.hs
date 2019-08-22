@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 import Prelude     (IO)
-import Application (handler)
+import Application (handler, cmdLog)
 import Import
 import qualified Data.Map.Strict as Map
 
@@ -16,8 +16,8 @@ main = handler $ do
         let fees = rights matched
         insertMany_ fees
         return (length fees, lefts matched)
-    putStr $ unlines $ warn
-    putStrLn $ "inserted " <> (tshow n) <> " fee records"
+    liftIO $ cmdLog $ unlines $ warn
+    liftIO $ cmdLog $ "inserted " <> (tshow n) <> " fee records"
 
 userFee :: UserId -> Entity Level -> UTCTime -> Fee
 userFee memberId (Entity lid l) ts = Fee
@@ -27,7 +27,6 @@ userFee memberId (Entity lid l) ts = Fee
         , feeAmount      = levelAmount l
         }
 
--- match :: [Entity User] -> [Entity Level] -> ([(Entity User, Entity Level)], [Entity User])
 match :: [Entity User] -> [Entity Level] -> UTCTime -> [Either Text Fee]
 match members lvls ts = map f members
   where

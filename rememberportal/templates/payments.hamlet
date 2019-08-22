@@ -3,7 +3,7 @@
   <tr>
     <td> Account balance:
     <td>
-      ^{balanceWidget 0.1}
+      ^{balanceWidget total}
 
 <h3>Payments</h3>
 <table .table .table-striped .table-bordered>

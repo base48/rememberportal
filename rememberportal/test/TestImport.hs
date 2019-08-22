@@ -142,10 +142,10 @@ createFixtures = do
         update uid4 [UserState =. Accepted, UserLevel =. Just lid1, UserKeysGranted =. Just month1]
 
     runDB $ do
-        insertEntity Payment { paymentUser = Just uid3, paymentDate = month1, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-        insertEntity Payment { paymentUser = Just uid3, paymentDate = month2, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-        insertEntity Payment { paymentUser = Just uid3, paymentDate = month3, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
-        insertEntity Payment { paymentUser = Just uid3, paymentDate = month4, paymentAmount = 500, paymentKind = "fio", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month1, paymentAmount = 500, paymentKind = "fio", paymentKindId = "1234", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "", paymentStaffComment = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month2, paymentAmount = 500, paymentKind = "fio", paymentKindId = "1235", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "", paymentStaffComment = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month3, paymentAmount = 500, paymentKind = "fio", paymentKindId = "1236", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "", paymentStaffComment = "" }
+        insertEntity Payment { paymentUser = Just uid3, paymentDate = month4, paymentAmount = 500, paymentKind = "fio", paymentKindId = "1237", paymentLocalAccount = "2900086515/2010", paymentRemoteAccount = "8", paymentIdentification = "", paymentJson = "", paymentStaffComment = "" }
 
     runDB $ do
         insertEntity Fee { feeUser = uid3, feeLevel = lid4, feePeriodStart = month1, feeAmount = 300 }

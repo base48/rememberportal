@@ -49,12 +49,17 @@ Payment
     date UTCTime
     amount Rational
     kind Text -- fio, btc
+    kindId Text -- unique id for given kind
     localAccount Text
     remoteAccount Text
     identification Text
 
-    json ByteString -- full payment data
+    -- reason why this column is Text: https://www.sqlite.org/json1.html
+    json Text
 
+    staffComment Text
+
+    UniqueKindId kind kindId
     deriving Typeable Show
 
 Fee

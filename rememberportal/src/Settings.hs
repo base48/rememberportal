@@ -62,6 +62,7 @@ data AppSettings = AppSettings
     , appMailSendmailBin        :: FilePath
 
     , appCurrency               :: Text
+    , appFioTokenPath           :: Maybe FilePath
     } deriving Show
 
 instance FromJSON AppSettings where
@@ -90,6 +91,7 @@ instance FromJSON AppSettings where
         appMailFrom               <- o .: "mail-from"
         appMailSendmailBin        <- o .: "mail-sendmail-bin"
         appCurrency               <- o .: "currency"
+        appFioTokenPath           <- o .:? "fio-token-path"
         let appAuthDummy = False
 
         return AppSettings {..}

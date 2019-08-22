@@ -9,16 +9,21 @@
 module Handler.Payments where
 
 import Import
+import Payments.Fio
 
+import Data.Aeson
+import qualified Data.Text.Encoding as TE
 import qualified Data.Map.Strict as Map
+import qualified Data.ByteString.Lazy as BL
 
 -- FIXME paging
 getPaymentsR :: Handler Html
 getPaymentsR = do
     (_uid, u) <- requireAuthPair
     let isStaff = userStaff u
-    payments <- runDB $ selectList ([] :: [Filter Payment]) []
+    payments <- runDB $ selectList ([] :: [Filter Payment]) [Desc PaymentDate]
     userMap <- getUserMap
+    let total = sum $ map (\(Entity _ p) -> paymentAmount p) payments -- FIXME breaks with pagination or w/ multiple accounts
     defaultLayout $ do
         setTitle . toHtml $ ("Finance" :: Text)
         $(widgetFile "payments")
@@ -71,6 +76,9 @@ paymentsEditHelper pid p widget enctype = do
 
 paymentRow :: Bool -> Map UserId Text -> Entity Payment -> Widget
 paymentRow isStaff userMap (Entity pid p) = do
+    let details = if paymentKind p == "fio"
+            then fioDetails $ paymentJson p
+            else [("kind", "unknown")]
     [whamlet|
       <tr>
         <td>#{show $ utctDay $ paymentDate p}
@@ -78,23 +86,25 @@ paymentRow isStaff userMap (Entity pid p) = do
         <td>#{paymentLocalAccount p}
         <td>#{paymentRemoteAccount p}
         <td style="text-align:right">
-          $if amount > 0
-            <span .label .label-success>#{showRational amount} ^{currencyWidget}
-          $else
-            <span .label .label-important>#{showRational amount} ^{currencyWidget}
+          ^{balanceWidget amount}
         <td>#{paymentIdentification p}
-        <td>TBD format details
+        <td>
+            $forall (k, v) <- details
+                <i>#{k}</i>:&nbsp;#{v}
         <td>
           $maybe uid <- paymentUser p
             #{username uid}
           $nothing
-            &nbsp;
+            <i>
           $if isStaff
             &nbsp;[<a href=@{PaymentsEditR pid}>edit</a>]
     |]
   where
     amount = paymentAmount p
     username uid = fromMaybe ("UNKNOWN ID " <> tshow uid) $ Map.lookup uid userMap
+    fioDetails jsonText = case eitherDecode $ BL.fromStrict $ TE.encodeUtf8 $ jsonText :: Either String FioPayment of
+            Left str  -> [("error", pack str)]
+            Right fp  -> descriptionShort fp
 
 feeRow :: Map LevelId Text -> Entity Fee -> Widget
 feeRow levelMap (Entity _fid f) = do
@@ -129,10 +139,12 @@ paymentForm userList p = renderBootstrap2 $ Payment
     <*> (pure $ paymentDate p)
     <*> (pure $ paymentAmount p)
     <*> (pure $ paymentKind p)
+    <*> (pure $ paymentKindId p)
     <*> (pure $ paymentLocalAccount p)
     <*> (pure $ paymentRemoteAccount p)
     <*> (pure $ paymentIdentification p)
     <*> (pure $ paymentJson p)
+    <*> (pure $ paymentStaffComment p)
   where
     userSelect = selectFieldList $ map (\(Entity uid u) -> (userIdent u, uid)) userList
 
@@ -158,4 +170,4 @@ balanceWidget :: Rational -> Widget
 balanceWidget balance = do
     currency <- handlerToWidget $ getYesod >>= return . appCurrency . appSettings
     let sigcl = if balance > 0 then "label-success" else "label-important" :: Text
-    [whamlet|<span .label class=#{sigcl}>#{showRational balance} #{currency}|]
+    [whamlet|<span .label class=#{sigcl}>#{showRational balance}&nbsp;#{currency}|]

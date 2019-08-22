@@ -43,6 +43,10 @@ dependencies:
 - wai
 - foreign-store
 - mime-mail
+- wreq
+- lens-aeson
+- lens
+- scientific
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
@@ -88,6 +92,19 @@ executables:
     when:
     - condition: flag(library-only)
       buildable: false
+  rememberportal-sync-fio:
+    main: sync-fio.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - rememberportal
+    when:
+    - condition: flag(library-only)
+      buildable: false
+#rememberportal-send-reminders:
 
 # Test suite
 tests:

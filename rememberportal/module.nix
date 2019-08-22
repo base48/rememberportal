@@ -19,6 +19,7 @@ let
     RMP_MAIL_FROM = cfg.mailFrom;
     RMP_ORG_NAME = cfg.orgName;
     RMP_CURRENCY = cfg.currency;
+    RMP_FIO_TOKEN_PATH = cfg.payments.fio.tokenFile;
   };
   srv = name: {
     ExecStart = "${rememberportalPackage}/bin/${name}";
@@ -62,6 +63,13 @@ in
           default = 13337;
           description = "Port number on which the application listens. Note that it always listens on loopback interface because https proxy in front of it is required.";
         };
+
+        payments.fio.tokenFile = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          example = "/run/keys/rememberportal-fio-token";
+          description = "A file containing the token to FIO bank API.";
+        };
       };
     };
 
@@ -83,6 +91,14 @@ in
           requires = [ "rememberportal.service" ];
           serviceConfig = srv "rememberportal-create-fees";
         };
+
+        rememberportal-sync-fio = mkIf (cfg.payments.fio.tokenFile != null) {
+          description = "FIO payments sync task";
+          environment = env;
+          after = [ "rememberportal.service" ];
+          requires = [ "rememberportal.service" ];
+          serviceConfig = srv "rememberportal-sync-fio";
+        };
       };
 
       systemd.timers = {
@@ -91,6 +107,14 @@ in
           wantedBy = [ "timers.target" ];
           timerConfig = {
             OnCalendar = "monthly";
+            Persistent = true;
+          };
+        };
+        rememberportal-sync-fio = mkIf (cfg.payments.fio.tokenFile != null) {
+          description = "Periodically download payment information from FIO bank API";
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = "hourly";
             Persistent = true;
           };
         };

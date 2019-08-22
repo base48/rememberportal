@@ -18,6 +18,7 @@ module Application
     -- * for GHCI
     , handler
     , db
+    , cmdLog -- FIXME I'm too retarded to figure out logging setup in the cli apps
     ) where
 
 import Control.Monad.Logger                 (liftLoc, runLoggingT)
@@ -37,6 +38,7 @@ import Network.Wai.Middleware.RequestLogger (Destination (Logger),
                                              mkRequestLogger, outputFormat)
 import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
+import qualified Data.Text.IO as T
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -200,3 +202,6 @@ handler h = do
 -- | Run DB queries
 db :: ReaderT SqlBackend Handler a -> IO a
 db = handler . runDB
+
+cmdLog :: Text -> IO ()
+cmdLog t = T.putStrLn t
