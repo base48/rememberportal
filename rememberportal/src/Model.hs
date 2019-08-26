@@ -54,7 +54,8 @@ Payment
     remoteAccount Text
     identification Text
 
-    -- reason why this column is Text: https://www.sqlite.org/json1.html
+    -- type Text is used in order to be compatible with https://www.sqlite.org/json1.html
+    -- even though we aren't using it
     json Text
 
     staffComment Text
