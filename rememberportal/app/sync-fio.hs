@@ -82,7 +82,6 @@ main = handler $ do
     liftIO $ forM_ stats $ \(s, n) -> do
         cmdLog $ s <> ": " <> (pack $ show $ n)
 
-
 countNum p xs = length $ filter p xs
 
 countMatch :: Text -> [(Bool, Maybe Text)] -> Int

@@ -165,9 +165,6 @@ memberEditForm' isStaff levels currency u = renderBootstrap2 $ User
     dayToUTC day = UTCTime day 0
     levelField = selectFieldList $ map (\(Entity lid lvl) -> (formatLevel lvl currency, lid)) levels
 
-formatLevel :: Level -> Text -> Text
-formatLevel lvl currency = levelName lvl <> " [" <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"
-
 editLink :: Route App -> Widget
 editLink = staffLink "edit"
 

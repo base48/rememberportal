@@ -64,4 +64,7 @@ SELECT  a.id,
         a.is_staff
 FROM      auth_user AS a
 LEFT JOIN baseprofile_baseprofile AS b ON a.id = b.user_id;
+
+UPDATE fee SET amount = CASE amount WHEN 500 THEN 400 WHEN 250 THEN 200 ELSE amount END WHERE period_start < '2016-10-05';
+UPDATE fee SET amount = CASE amount WHEN 500 THEN 800 WHEN 250 THEN 400 ELSE amount END WHERE period_start > '2016-10-06' AND period_start < '2017-01-05';
 ```

@@ -7,11 +7,31 @@
 <h3>Fees
 
 <table .table .table-striped .table-bordered>
+  <tr>
+    <th>Month
+    <th>Level
+    <th>Amount
   $forall row <- fees
     ^{feeRow levelMap row}
 
 <h3>Payments
 
 <table .table .table-striped .table-bordered>
+  <tr>
+    <th>Date
+    <th>Kind
+    <th>To
+    <th>From
+    <th style="text-align:right">Amount
+    <th style="text-align:right">ID
+    <th>Details
+    <th>Fee for
   $forall p <- payments
     ^{paymentRow isStaff userMap p}
+
+$if isStaff
+  <h3> Add fees
+  <form method=post action=@{PaymentsMemberFeeR memberId} enctype=#{addFeesEnctype} .form-horizontal>
+    ^{addFeesWidget}
+    <div .form-actions>
+      <button type=submit .btn .btn-primary>Add

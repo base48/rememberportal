@@ -85,6 +85,7 @@ mkYesodData "App" [parseRoutes|
 
 /payments                       PaymentsR       GET      !member
 /payments/#UserId               PaymentsMemberR GET      !member
+/payments/fee/#UserId           PaymentsMemberFeeR POST  !staff
 /payments/edit/#PaymentId       PaymentsEditR   GET POST !staff
 
 /admin                          AdminR             GET      !staff
