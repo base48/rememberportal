@@ -3,6 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 
@@ -149,10 +150,10 @@ paymentForm userList p = renderBootstrap2 $ Payment
     userSelect = selectFieldList $ map (\(Entity uid u) -> (userIdent u, uid)) userList
 
 -- XXX optimizable
-memberBalance :: UserId -> Handler Rational
+memberBalance :: UserId -> DB Rational
 memberBalance memberId = do
-    payments <- runDB $ selectList [PaymentUser ==. Just memberId] []
-    fees <- runDB $ selectList [FeeUser ==. memberId] []
+    payments <- selectList [PaymentUser ==. Just memberId] []
+    fees <- selectList [FeeUser ==. memberId] []
     return $ memberBalance' fees payments
 
 memberBalance' :: [Entity Fee] -> [Entity Payment] -> Rational
@@ -169,5 +170,5 @@ currencyWidget = do
 balanceWidget :: Rational -> Widget
 balanceWidget balance = do
     currency <- handlerToWidget $ getYesod >>= return . appCurrency . appSettings
-    let sigcl = if balance > 0 then "label-success" else "label-important" :: Text
+    let sigcl = if balance >= 0 then "label-success" else "label-important" :: Text
     [whamlet|<span .label class=#{sigcl}>#{showRational balance}&nbsp;#{currency}|]

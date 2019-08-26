@@ -1,16 +1,3 @@
 $forall Entity uid u <- users
   <h2> #{userIdent u} ^{editLink $ MemberEditR uid}^{staffLink "payments" (PaymentsMemberR uid)}
   ^{memberDetail uid u}
-
-  <table .table .table-striped .table-bordered>
-    <tr>
-      <td>
-        2019
-      $forall m <- months
-        <td>
-          $if m == 1
-            <span .label .label-success>#{m}
-          $elseif m == 2
-            <span .label .label-info>#{m}
-          $else
-            <span .label .label-important>#{m}

@@ -14,16 +14,24 @@
       Username
     <td>
       #{userIdent u}
-  <tr>
-    <td>
-      Alt nick
-    <td>
-      #{fromMaybe "" $ userAltnick u}
-  <tr>
-    <td>
-      Phone
-    <td>
-      #{fromMaybe "" $ userPhone u}
+  $maybe x <- userAltnick u
+    <tr>
+      <td>
+        Alt nick
+      <td>
+        #{x}
+  $maybe x <- userPhone u
+    <tr>
+      <td>
+        Phone
+      <td>
+        #{x}
+  $maybe x <- userAltcontact u
+    <tr>
+      <td>
+        Alt contact
+      <td>
+        #{x}
   <tr>
     <td>
       Membership status

@@ -582,6 +582,7 @@ memberNewForm = renderBootstrap2 $ User
     <*> aopt phoneField "Phone number" Nothing
     <*> pure Nothing
     <*> pure Nothing
+    <*> pure Nothing
     <*> lift (liftIO getCurrentTime)
     <*> pure Nothing
     <*> pure Nothing

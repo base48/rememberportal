@@ -27,6 +27,7 @@ User
     realname Text Maybe
     altnick Text Maybe
     phone Text Maybe
+    altcontact Text Maybe
 
     level LevelId Maybe
     paymentsId Int Maybe

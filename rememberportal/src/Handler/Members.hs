@@ -19,12 +19,10 @@ getMembersOverviewR = do
     num_awaiting <- countMembers [UserState ==. Awaiting]
     num_ex <- countMembers [UserState ==. Exmember]
     num_rejected <- countMembers [UserState ==. Rejected]
+    d <- runDB $ debtors
     defaultLayout $ do
         setTitle . toHtml $ ("Members overview" :: Text)
         $(widgetFile "members-overview")
-  where
-    num_paying = 1337 :: Int -- FIXME
-    num_nonpaying = 666 :: Int
 
 getMembersAcceptedR :: Handler Html
 getMembersAcceptedR = membersList [UserState ==. Accepted]
@@ -56,8 +54,6 @@ membersList filt = do
     defaultLayout $ do
         setTitle . toHtml $ ("Member list" :: Text)
         $(widgetFile "members-list")
-  where
-    months = [1..12] :: [Int]
 
 countMembers :: [Filter User] -> Handler Int
 countMembers filt = runDB $ count filt
@@ -72,8 +68,8 @@ memberDetail uid u = do
     let kReturn = isJust $ userKeysReturned u
     $(widgetFile "members-detail")
   where
-    veryInefficientBalance = do --
-        b <- liftHandler $ memberBalance uid
+    veryInefficientBalance = do -- ewwww
+        b <- liftHandler $ runDB $ memberBalance uid
         balanceWidget b
 
 getMemberProfileR :: Handler Html
@@ -138,6 +134,7 @@ memberEditForm' isStaff levels currency u = renderBootstrap2 $ User
     <*> aopt textField "Full name" (Just $ userRealname u)
     <*> aopt textField "Alternative nick" (Just $ userAltnick u)
     <*> aopt phoneField "Phone number" (Just $ userPhone u)
+    <*> aopt textField "Alternative contact" (Just $ userAltcontact u)
     <*> (if isStaff
             then aopt levelField "Membership level" (Just $ userLevel u)
             else pure (userLevel u))
@@ -180,3 +177,11 @@ staffLink text route = do
     if userStaff u
         then [whamlet|[<a href=@{route}>#{text}</a>]|]
         else [whamlet||]
+
+debtors :: DB [(Entity User, Rational)]
+debtors = do
+    users <- selectList [UserState ==. Accepted] []
+    x <- forM users $ \e@(Entity memberId _) -> do
+            balance <- memberBalance memberId
+            return (e, balance)
+    return $ sortOn snd $ filter (\e -> snd e < 0) x
