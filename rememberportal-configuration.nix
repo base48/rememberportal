@@ -13,7 +13,7 @@
 
       services.rememberportal = {
         enable = true;
-        sendmailBin = "${pkgs.msmtp}/bin/sendmail";
+        sendmailBin = "${pkgs.system-sendmail}/bin/sendmail";
       };
       services.nginx = {
         enable = true;
@@ -34,7 +34,6 @@
         };
       };
 
-      security.acme.production = false;
       environment.systemPackages = with pkgs; [ msmtp vim tmux sqlite ];
 
       # rename msmtprc.example to msmtprc after filling out

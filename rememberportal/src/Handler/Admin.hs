@@ -74,7 +74,7 @@ getAdminHelper newLevelWidget newLevelEnctype = do
     levels <- runDB $ do
         lvls <- selectList [] [Asc LevelName]
         forM lvls (\(Entity lid l) -> do
-            c <- count [UserLevel ==. Just lid]
+            c <- count [UserLevel ==. Just lid, UserState ==. Accepted]
             return (lid, l, c))
     currency <- getYesod >>= return . appCurrency . appSettings
     num_nolevel <- countMembers [UserState ==. Accepted, UserLevel ==. Nothing]

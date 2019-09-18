@@ -108,6 +108,7 @@ createUser ident = runDB $ do
         , userRealname = Nothing
         , userAltnick = Nothing
         , userPhone = Nothing
+        , userAltcontact = Nothing
         , userLevel = Nothing
         , userPaymentsId = Nothing
         , userDateJoined = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]
