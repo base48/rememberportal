@@ -5,7 +5,7 @@
     { config, pkgs, ... }:
     {
       imports = [
-        ./rememberportal/module.nix
+        ../module.nix
       ];
 
       networking.hostName = "rememberportal";
