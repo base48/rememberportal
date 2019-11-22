@@ -90,7 +90,7 @@ spec = withApp $ do
                 setMethod "POST"
                 addToken
                 byLabelExact "Email" "foo@example.com"
-                byLabelExact "Phone number" "%2B420606000666"
+                byLabelExact "Phone number" "+420606000666"
                 setUrl $ MemberEditR uid
             statusIs 303
 
@@ -136,7 +136,7 @@ spec = withApp $ do
                 byLabelExact "Nick" "bar"
                 byLabelExact "State" "1"
                 byLabelExact "Email" "bar@example.com"
-                byLabelExact "Phone number" "%2B420606000666"
+                byLabelExact "Phone number" "+420606000666"
                 byLabelExact "Date joined" "2019-07-05"
                 setUrl $ MemberEditR ouid
             printBody

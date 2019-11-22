@@ -42,7 +42,7 @@ dependencies:
 - case-insensitive
 - wai
 - foreign-store
-- mime-mail
+- mime-mail >=0.5 && <0.6
 - wreq
 - lens-aeson
 - lens

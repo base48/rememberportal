@@ -25,9 +25,9 @@ sendRegEmail as email verurl = renderSendMailCustom sendmailBin sendmailOpts $ (
         textPart = Part
             { partType = "text/plain; charset=utf-8"
             , partEncoding = None
-            , partFilename = Nothing
+            , partDisposition = DefaultDisposition
             , partHeaders = []
-            , partContent = TLE.encodeUtf8
+            , partContent = PartContent $ TLE.encodeUtf8
                 [stext|
 Please confirm your email address by clicking on the link below.
 
