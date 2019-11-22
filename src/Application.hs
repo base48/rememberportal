@@ -45,6 +45,7 @@ import qualified Data.Text.IO as T
 import Handler.Common
 import Handler.Home
 import Handler.Members
+import Handler.MembersEdit
 import Handler.Admin
 import Handler.Payments
 
