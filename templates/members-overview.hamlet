@@ -18,6 +18,9 @@
   <tr>
     <td> Number of ex members:
     <td> <a href=@{MembersExR}>#{num_ex}
+  <tr>
+    <td> Estimated monthly income (assuming no missed payments):
+    <td> ^{balanceWidget monthly}
 
 $if length d > 0
   <h3>Members with missing payments

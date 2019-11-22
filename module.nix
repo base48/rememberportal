@@ -13,13 +13,14 @@ let
   env = {
     RMP_STATIC_DIR = "${rememberportalPackage}/static/";
     RMP_HOST = "127.0.0.1";
-    RMP_PORT = "${toString cfg.port}";
+    RMP_PORT = toString cfg.port;
     RMP_IP_FROM_HEADER = "true";
     RMP_SENDMAIL_BIN = cfg.sendmailBin;
     RMP_MAIL_FROM = cfg.mailFrom;
     RMP_ORG_NAME = cfg.orgName;
     RMP_CURRENCY = cfg.currency;
     RMP_FIO_TOKEN_PATH = cfg.payments.fio.tokenFile;
+    RMP_FLEXIBLE_FEES = toString cfg.flexibleFees;
   };
   srv = name: {
     ExecStart = "${rememberportalPackage}/bin/${name}";
@@ -56,6 +57,15 @@ in
           type = types.str;
           default = "BTC";
           description = "Membership fees currency";
+        };
+
+        flexibleFees = mkOption {
+          type = types.bool;
+          default = false;
+          description = ''
+            When flexible fees are enabled, each user can choose membership fee amount they'll be
+            charged, provided that the amount is greater or equal to the basic fee.
+          '';
         };
 
         port = mkOption {

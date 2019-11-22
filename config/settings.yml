@@ -41,3 +41,6 @@ mail-from: "_env:RMP_MAIL_FROM:noreply"
 currency: "_env:RMP_CURRENCY:BTC"
 
 fio-token-path: "_env:RMP_FIO_TOKEN_PATH:"
+
+# When true, member can choose amount that they'll be charged each month (provided that the amount is higher than indicated by membership level).
+flexible-fees: "_env:RMP_FLEXIBLE_FEES:false"

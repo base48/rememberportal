@@ -56,17 +56,10 @@ postLevelEditR lid = do
 levelForm :: Maybe Level -> Form Level
 levelForm ml = renderBootstrap2 $ Level
     <$> areq identField "Name" (levelName <$> ml)
-    <*> (realToFrac <$> (areq amountField "Amount" (fromRational <$> levelAmount <$> ml))) -- FIXME rounding errors 321.4
+    <*> areq amountField "Amount" (levelAmount <$> ml)
     <*> areq checkBoxField "Active" (Just $ defaultTrue $ levelActive <$> ml)
-    <*> areq checkBoxField "User-selectable" (levelUserSelectable <$> ml)
   where
     identField = strField 1 30 (const True) "Name"
-    amountField :: Monad m => RenderMessage (HandlerSite m) FormMessage => Field m Double
-    amountField = check validateAmount doubleField
-    validateAmount :: Double -> Either Text Double
-    validateAmount x
-      | x < 0     = Left "Must not be negative"
-      | otherwise = Right x
     defaultTrue x = fromMaybe True x
 
 getAdminHelper :: Widget -> Enctype -> Handler Html

@@ -60,7 +60,10 @@
         Membership level
       <td>
         $maybe l <- maybeLevel
-          #{formatLevel l currency}
+          $if snd (actualFee flexibleFees u l)
+            &#x1f680; #{levelName l} [#{showRational $ fst $ actualFee flexibleFees u l} #{currency}]
+          $else
+            #{formatLevel l "" currency}
         $nothing
           <i .icon-remove>
     <tr>

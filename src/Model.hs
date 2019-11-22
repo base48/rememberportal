@@ -30,6 +30,7 @@ User
     altcontact Text Maybe
 
     level LevelId Maybe
+    levelActualAmount Rational default=0 -- used for flexible fees
     paymentsId Int Maybe
 
     dateJoined UTCTime
@@ -75,6 +76,5 @@ Level
     name Text
     amount Rational
     active Bool
-    userSelectable Bool
     deriving Typeable Show
 |]

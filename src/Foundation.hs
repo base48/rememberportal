@@ -21,6 +21,7 @@ import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 import Data.Char            (isAlphaNum, isAscii, isDigit)
 import Data.Maybe           (fromJust)
+import Data.Text.Read       (rational)
 
 import Yesod.Auth.Email
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -583,6 +584,7 @@ memberNewForm = renderBootstrap2 $ User
     <*> aopt phoneField "Phone number" Nothing
     <*> pure Nothing
     <*> pure Nothing
+    <*> pure 0
     <*> pure Nothing
     <*> lift (liftIO getCurrentTime)
     <*> pure Nothing
@@ -615,3 +617,37 @@ allocatePaymentsId uid u = do
                         []              -> 1
                         (Entity _ up):_ -> 1 + (fromJust $ userPaymentsId up)
                 update uid [UserPaymentsId =. Just npid]
+
+amountField :: Monad m => RenderMessage (HandlerSite m) FormMessage => Field m Rational
+amountField = check validateAmount amountField'
+  where
+    validateAmount :: Rational -> Either Text Rational
+    validateAmount x
+      | x < 0     = Left "Must not be negative"
+      | otherwise = Right x
+
+amountField' :: Monad m => RenderMessage (HandlerSite m) FormMessage => Field m Rational
+amountField' = Field
+    { fieldParse = parseHelper $ \s ->
+        case Data.Text.Read.rational s of
+            Right (a, "") -> Right a
+            _ -> Left $ MsgInvalidNumber s
+
+    , fieldView = \theId name attrs val isReq -> toWidget [hamlet|
+$newline never
+<input id="#{theId}" name="#{name}" *{attrs} type="number" step=any :isReq:required="" value="#{showVal val}">
+|]
+    , fieldEnctype = UrlEncoded
+    }
+  where showVal = either id showRational
+
+-- we don't really enforce that individual's set fee is >= level fee
+-- so this function needs to be used everytime the real value is needed
+-- ofc this is only needed because of flexible fees
+actualFee :: Bool -> User -> Level -> (Rational, Bool)
+actualFee flexible u l
+    | not flexible = (levelAmount l, False)
+    | otherwise    = (ua `max` la, ua > la)
+  where
+    ua = userLevelActualAmount u
+    la = levelAmount l

@@ -190,7 +190,7 @@ addFeesForm currency curTime levels u = renderBootstrap2 $ AddFeesData
     <*> (aopt levelField "Level" $ (Just $ userLevel u))
   where
     dayToUTC day = UTCTime day 0
-    levelField = selectFieldList $ map (\(Entity lid lvl) -> (formatLevel lvl currency, lid)) levels
+    levelField = selectFieldList $ map (\(Entity lid lvl) -> (formatLevel lvl "" currency, lid)) levels
 
 addFeesForm' uid = do
     u <- runDB $ get404 uid
@@ -226,5 +226,5 @@ balanceWidget balance = do
     let sigcl = if balance >= 0 then "label-success" else "label-important" :: Text
     [whamlet|<span .label class=#{sigcl}>#{showRational balance}&nbsp;#{currency}|]
 
-formatLevel :: Level -> Text -> Text
-formatLevel lvl currency = levelName lvl <> " [" <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"
+formatLevel :: Level -> Text -> Text -> Text
+formatLevel lvl prefix currency = levelName lvl <> " [" <> prefix <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"

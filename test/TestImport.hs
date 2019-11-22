@@ -110,6 +110,7 @@ createUser ident = runDB $ do
         , userPhone = Nothing
         , userAltcontact = Nothing
         , userLevel = Nothing
+        , userLevelActualAmount = 0
         , userPaymentsId = Nothing
         , userDateJoined = fromJust $ buildTime defaultTimeLocale [('Y', "2000")]
         , userKeysGranted = Nothing
@@ -125,10 +126,10 @@ acceptMember (Entity uid _) = runDB $ update uid [UserState =. Accepted]
 
 createFixtures :: YesodExample App ()
 createFixtures = do
-    l1@(Entity lid1 _) <- runDB $ insertEntity Level { levelName = "Regular member",    levelAmount = 500,  levelActive = True, levelUserSelectable = True }
-    l2@(Entity lid2 _) <- runDB $ insertEntity Level { levelName = "Regular member 1k", levelAmount = 1000, levelActive = True, levelUserSelectable = True }
-    l3@(Entity lid3 _) <- runDB $ insertEntity Level { levelName = "Regular member 2k", levelAmount = 2000, levelActive = True, levelUserSelectable = True }
-    l4@(Entity lid4 _) <- runDB $ insertEntity Level { levelName = "Student member",    levelAmount = 300,  levelActive = True, levelUserSelectable = False }
+    l1@(Entity lid1 _) <- runDB $ insertEntity Level { levelName = "Regular member",    levelAmount = 500,  levelActive = True }
+    l2@(Entity lid2 _) <- runDB $ insertEntity Level { levelName = "Regular member 1k", levelAmount = 1000, levelActive = True }
+    l3@(Entity lid3 _) <- runDB $ insertEntity Level { levelName = "Regular member 2k", levelAmount = 2000, levelActive = True }
+    l4@(Entity lid4 _) <- runDB $ insertEntity Level { levelName = "Student member",    levelAmount = 300,  levelActive = True }
 
     u1@(Entity uid1 _) <- createUser "admin"
     u2@(Entity uid2 _) <- createUser "council"

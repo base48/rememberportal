@@ -12,7 +12,6 @@
     <th>Name
     <th>Amount
     <th>Active
-    <th>User-selectable
     <th><i .icon-edit>
   $forall (lid, l, userCount) <- levels
     <tr>
@@ -20,11 +19,6 @@
       <td style="text-align:right">#{showRational $ levelAmount l} #{currency}
       <td>
         $if levelActive l
-          <i .icon-ok>
-        $else
-          <i .icon-remove>
-      <td>
-        $if levelUserSelectable l
           <i .icon-ok>
         $else
           <i .icon-remove>
