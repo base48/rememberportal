@@ -1,7 +1,20 @@
-### Haskell Setup
+# base48 memberportal (rewritten)
+
+Simple web application that facilitates operation of small non-profit organizations. Helps you keep track of:
+
+* registrations of members w/ email confirmation
+* who has keys to physical space
+* membership fees and payments (can download payment data from [Fio bank](https://fio.cz))
+
+This program was written for the needs of [base48 hackerspace](https://base48.cz) and is based on
+[the original memberportal](https://github.com/hackerspace/memberportal) written by @sorki
+(rememberportal heavily reuses its HTML/CSS templates).
+
+## Haskell Setup - Stack
 
 1. If you haven't already, [install Stack](https://haskell-lang.org/get-started)
-	* On POSIX systems, this is usually `curl -sSL https://get.haskellstack.org/ | sh`
+   * On POSIX systems, this is usually `curl -sSL https://get.haskellstack.org/ | sh`
+   * Or use your distribution's package if available
 2. Install the `yesod` command line tool: `stack install yesod-bin --install-ghc`
 3. Build libraries: `stack build`
 
@@ -22,6 +35,32 @@ As your code changes, your site will be automatically recompiled and redeployed 
 ```
 stack test --flag rememberportal:library-only --flag rememberportal:dev
 ```
+
+## Haskell Setup - Nix
+
+With [Nix](https://nixos.org/nix/) package manager, you can use nix-shell to quickly setup development environment:
+
+```
+nix-shell
+```
+
+Once in nix-shell you can either use `cabal v2-<command>` commands:
+
+```
+cabal v2-build
+cabal v2-test 
+cabal v2-run rememberportal
+cabal v2-run rememberportal-sync-fio --help
+```
+
+Or run the development server:
+
+```
+yesod devel
+```
+
+For production deployment this repo contains a [NixOS](https://nixos.org/nixos/) module as well as
+example [nixops](https://nixos.org/nixops/) configuration.
 
 ## Yesod Documentation
 
