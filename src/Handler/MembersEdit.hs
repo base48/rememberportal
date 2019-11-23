@@ -47,7 +47,7 @@ postMemberEditR memberId = do
                 redirect $ if uid == memberId then MemberProfileR else MembersOverviewR
             else do
                 addMessage "danger" $ toHtml ("Fee can't be less than level minimum" :: Text)
-                redirect $ MemberEditR memberId
+                profileEditHelper memberId widget enctype
   where
     validateFlexibleFees :: User -> Handler Bool
     validateFlexibleFees nu = do

@@ -9,3 +9,4 @@ database:
   database: rememberportal_test.sqlite3
 
 auth-dummy-login: true
+flexible-fees: false

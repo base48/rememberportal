@@ -20,7 +20,7 @@ let
     RMP_ORG_NAME = cfg.orgName;
     RMP_CURRENCY = cfg.currency;
     RMP_FIO_TOKEN_PATH = cfg.payments.fio.tokenFile;
-    RMP_FLEXIBLE_FEES = toString cfg.flexibleFees;
+    RMP_FLEXIBLE_FEES = builtins.toJSON cfg.flexibleFees;
   };
   srv = name: {
     ExecStart = "${rememberportalPackage}/bin/${name}";
