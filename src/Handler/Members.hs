@@ -34,7 +34,7 @@ getMonthly = do
         users <- selectList [UserState ==. Accepted, UserLevel !=. Nothing] []
         levels <- selectList [LevelActive ==. True] []
         let levelMap = Map.fromList $ map (\(Entity lid l) -> (lid, l)) levels
-        let f (Entity uid u) = fst $ actualFee isFlexible u (Map.findWithDefault defaultLevel (fromJust $ userLevel u) levelMap)
+        let f (Entity _ u) = fst $ actualFee isFlexible u (Map.findWithDefault defaultLevel (fromJust $ userLevel u) levelMap)
         return $ sum $ map f users
   where
     defaultLevel = Level { levelAmount = 0, levelName = "", levelActive = True }

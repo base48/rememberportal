@@ -192,6 +192,7 @@ addFeesForm currency curTime levels u = renderBootstrap2 $ AddFeesData
     dayToUTC day = UTCTime day 0
     levelField = selectFieldList $ map (\(Entity lid lvl) -> (formatLevel lvl "" currency, lid)) levels
 
+addFeesForm' :: Key User -> Handler ((FormResult AddFeesData, Widget), Enctype)
 addFeesForm' uid = do
     u <- runDB $ get404 uid
     lvls <- runDB $ selectList [LevelActive ==. True] [Asc LevelAmount]

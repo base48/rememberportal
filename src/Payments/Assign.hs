@@ -42,9 +42,11 @@ getPaymentsIdMap = do
     return $ Map.fromList $ L.map (\(Entity uid u) -> (maybe (-1) Prelude.id $ userPaymentsId u, uid)) users
 
 assign :: PayIdMap -> AcctMap -> Payment -> Maybe (UserId, Text, AcctMap)
-assign payIdMap acctMap p = case parseNum >>= lookupId of
-        Just uid -> Just (uid, "payments id", acctMap)
-        Nothing  -> wrap <$> lookupAcct
+assign payIdMap acctMap p
+        | (paymentAmount p) < 0 = Nothing
+        | otherwise             = case parseNum >>= lookupId of
+            Just uid -> Just (uid, "payments id", acctMap)
+            Nothing  -> wrap <$> lookupAcct
   where
     acct       = paymentRemoteAccount p
     parseNum   = readMaybe $ unpack $ paymentIdentification p :: Maybe Int
