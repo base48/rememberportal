@@ -10,6 +10,13 @@ This program was written for the needs of [base48 hackerspace](https://base48.cz
 [the original memberportal](https://github.com/hackerspace/memberportal) written by @sorki
 (rememberportal heavily reuses its HTML/CSS templates).
 
+## Configuration
+
+Please read the comments in [./config/settings.yml](./config/settings.yml). This file is read at compile time.
+
+You can customize the memberportal somewhat by editing the files in the `templates` subdirectory. Please note
+that these are evaluated at compile time as well.
+
 ## Haskell Setup - Stack
 
 1. If you haven't already, [install Stack](https://haskell-lang.org/get-started)
@@ -78,6 +85,22 @@ example [nixops](https://nixos.org/nixops/) configuration.
 Run `curl "https://www.fio.cz/ib_api/rest/set-last-date/$FIOTOKENHERE/1970-01-01/"` to rewind last synced transaction pointer. Then run `rememberportal-sync-fio` to import ALL payments. Existing payments are left untouched, however if you deleted any payments they will be re-added.
 
 In order to avoid this problem, never use rememberportal's Fio token for anything else.
+
+#### I need to change X but there's no form to do it
+
+You may have to edit the database manually, for example using the [sqlite
+CLI](https://www.sqlite.org/cli.html):
+```
+cp /var/lib/rememberportal/rememberportal.sqlite3 /var/lib/rememberportal/rememberportal-backup`date "+%y%m%d"`.sqlite3
+sqlite3 /var/lib/rememberportal/rememberportal.sqlite3
+
+sqlite> .headers on
+sqlite> .changes on
+sqlite> .mode column
+sqlite> BEGIN TRANSACTION;
+sqlite> ...
+sqlite> COMMIT;
+```
 
 #### Migration from original memberportal
 
