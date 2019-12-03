@@ -12,10 +12,10 @@ This program was written for the needs of [base48 hackerspace](https://base48.cz
 
 ## Configuration
 
-Please read the comments in [./config/settings.yml](./config/settings.yml). This file is read at compile time.
+Please read the comments in [config/settings.yml](./config/settings.yml). This file is read at compile time.
 
-You can customize the memberportal somewhat by editing the files in the `templates` subdirectory. Please note
-that these are evaluated at compile time as well.
+You can customize the memberportal somewhat by editing the files in the [templates](./templates/) subdirectory.
+Please note that these are evaluated at compile time as well.
 
 ## Haskell Setup - Stack
 
