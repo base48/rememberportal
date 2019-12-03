@@ -107,11 +107,3 @@ staffLink text route = do
     if userStaff u
         then [whamlet|[<a href=@{route}>#{text}</a>]|]
         else [whamlet||]
-
-debtors :: DB [(Entity User, Rational)]
-debtors = do
-    users <- selectList [UserState ==. Accepted] []
-    x <- forM users $ \e@(Entity memberId _) -> do
-            balance <- memberBalance memberId
-            return (e, balance)
-    return $ sortOn snd $ filter (\e -> snd e < 0) x
