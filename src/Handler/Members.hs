@@ -52,7 +52,7 @@ getMembersExR :: Handler Html
 getMembersExR = membersList [UserState ==. Exmember]
 
 getMembersLevelR :: LevelId -> Handler Html
-getMembersLevelR lid = membersList [UserLevel ==. Just lid]
+getMembersLevelR lid = membersList [UserLevel ==. Just lid, UserState ==. Accepted]
 
 getMembersNoLevelR :: Handler Html
 getMembersNoLevelR = membersList [UserState ==. Accepted, UserLevel ==. Nothing]
