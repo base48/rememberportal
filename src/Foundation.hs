@@ -13,7 +13,7 @@
 module Foundation where
 
 import Import.NoFoundation
-import Registration
+import Mail
 
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)

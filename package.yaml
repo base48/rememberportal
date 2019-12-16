@@ -104,7 +104,18 @@ executables:
     when:
     - condition: flag(library-only)
       buildable: false
-#rememberportal-send-reminders:
+  rememberportal-send-reminders:
+    main: send-reminders.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - rememberportal
+    when:
+    - condition: flag(library-only)
+      buildable: false
 
 # Test suite
 tests:

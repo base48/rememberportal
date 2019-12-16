@@ -60,8 +60,10 @@ data AppSettings = AppSettings
 
     , appMailFrom               :: Text
     , appMailSendmailBin        :: FilePath
+    , appMailReplyTo            :: Maybe Text
 
     , appCurrency               :: Text
+    , appFeeAccount             :: Maybe Text
     , appFioTokenPath           :: Maybe FilePath
     , appFlexibleFees           :: Bool
     } deriving Show
@@ -91,7 +93,9 @@ instance FromJSON AppSettings where
         appOrgName                <- o .: "org-name"
         appMailFrom               <- o .: "mail-from"
         appMailSendmailBin        <- o .: "mail-sendmail-bin"
+        appMailReplyTo            <- o .:? "mail-reply-to"
         appCurrency               <- o .: "currency"
+        appFeeAccount             <- o .:? "fee-account"
         appFioTokenPath           <- o .:? "fio-token-path"
         appFlexibleFees           <- o .: "flexible-fees"
         let appAuthDummy = False

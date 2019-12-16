@@ -8,12 +8,15 @@ host:           "_env:RMP_HOST:*4" # any IPv4 host
 port:           "_env:RMP_PORT:3000"
 ip-from-header: "_env:RMP_IP_FROM_HEADER:false"
 
-org-name: "_env:RMP_ORG_NAME:memberportal"
-currency: "_env:RMP_CURRENCY:BTC"
+org-name:    "_env:RMP_ORG_NAME:memberportal"
+currency:    "_env:RMP_CURRENCY:BTC"
+fee-account: "_env:RMP_FEE_ACCOUNT:"
 
 mail-sendmail-bin: "_env:RMP_SENDMAIL_BIN:/sbin/sendmail"
 mail-from:         "_env:RMP_MAIL_FROM:noreply"
+mail-reply-to:     "_env:RMP_MAIL_REPLY_TO:"
 
+# Base for all generated URLs.
 # Default behavior: determine the application root from the request headers.
 approot: "_env:RMP_APPROOT:"
 

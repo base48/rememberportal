@@ -13,7 +13,8 @@
 
       services.rememberportal = {
         enable = true;
-        sendmailBin = "${pkgs.system-sendmail}/bin/sendmail";
+        mail.sendmail = "${pkgs.system-sendmail}/bin/sendmail";
+        reminders = true;
       };
       services.nginx = {
         enable = true;

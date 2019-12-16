@@ -229,3 +229,11 @@ balanceWidget balance = do
 
 formatLevel :: Level -> Text -> Text -> Text
 formatLevel lvl prefix currency = levelName lvl <> " [" <> prefix <> (showRational $ levelAmount lvl) <> " " <> currency <> "]"
+
+debtors :: DB [(Entity User, Rational)]
+debtors = do
+    users <- selectList [UserState ==. Accepted] []
+    x <- forM users $ \e@(Entity memberId _) -> do
+            balance <- memberBalance memberId
+            return (e, balance)
+    return $ sortOn snd $ filter (\e -> snd e < 0) x
