@@ -35,7 +35,7 @@
         };
       };
 
-      environment.systemPackages = with pkgs; [ msmtp vim tmux sqlite ];
+      environment.systemPackages = with pkgs; [ msmtp vim tmux (sqlite.override { interactive = true; }) ];
 
       # rename msmtprc.example to msmtprc after filling out
       environment.etc."msmtprc.example" = {

@@ -157,7 +157,7 @@ in
           description = "Periodically insert new membership fees";
           wantedBy = [ "timers.target" ];
           timerConfig = {
-            OnCalendar = mkDefault "monthly";
+            OnCalendar = mkDefault "*-*-1 23:00:00";
             Persistent = true;
           };
         };
