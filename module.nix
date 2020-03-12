@@ -179,18 +179,14 @@ in
         };
       };
 
-      users.users = (singleton {
+      users.users.${projectName} = {
         isSystemUser = true;
-        name = projectName;
         group = group;
         home = stateDir;
         createHome = true;
         description = "User for ${projectName} daemon";
-      });
+      };
 
-      users.groups = (singleton {
-        name = projectName;
-      });
-
+      users.groups.${projectName} = {};
     };
   }
