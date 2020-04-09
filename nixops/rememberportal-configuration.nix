@@ -26,8 +26,8 @@
 
         virtualHosts."memberportal.example.com" = {
           #default = true;
-          #enableACME = true;
-          #forceSSL = true;
+          enableACME = true;
+          forceSSL = true;
 
           locations."/" = {
             proxyPass = "http://127.0.0.1:${toString config.services.rememberportal.port}";
@@ -35,7 +35,7 @@
         };
       };
 
-      environment.systemPackages = with pkgs; [ msmtp vim tmux (sqlite.override { interactive = true; }) ];
+      environment.systemPackages = with pkgs; [ msmtp vim tmux sqlite-interactive ];
 
       # rename msmtprc.example to msmtprc after filling out
       environment.etc."msmtprc.example" = {
