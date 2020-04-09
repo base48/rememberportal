@@ -107,6 +107,21 @@ paymentsEditHelper pid p widget enctype = do
         setTitle . toHtml $ ("Edit payment" :: Text)
         $(widgetFile "payments-edit")
 
+paymentHeader :: Bool -> Widget
+paymentHeader isStaff = do
+    [whamlet|
+      <tr>
+        <th>Date
+        <th>Kind
+        <th>To
+        $if isStaff
+          <th>From
+        <th style="text-align:right">Amount
+        <th style="text-align:right">ID
+        <th>Details
+        <th>Fee for
+    |]
+
 paymentRow :: Bool -> Map UserId Text -> Entity Payment -> Widget
 paymentRow isStaff userMap (Entity pid p) = do
     let details = if paymentKind p == "fio"
@@ -117,7 +132,8 @@ paymentRow isStaff userMap (Entity pid p) = do
         <td>#{show $ utctDay $ paymentDate p}
         <td>#{paymentKind p}
         <td>#{paymentLocalAccount p}
-        <td>#{paymentRemoteAccount p}
+        $if isStaff
+          <td>#{paymentRemoteAccount p}
         <td style="text-align:right">
           ^{balanceWidget amount}
         <td style="text-align:right">#{paymentIdentification p}

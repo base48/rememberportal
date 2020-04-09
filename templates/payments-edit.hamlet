@@ -1,7 +1,8 @@
 <h2>Edit payment</h2>
 
 <table .table .table-striped .table-bordered>
-  ^{paymentRow False userMap (Entity pid p)}
+  ^{paymentHeader True}
+  ^{paymentRow True userMap (Entity pid p)}
   <tr>
     <td colspan=8>
       <form method=post action=@{PaymentsEditR pid} enctype=#{enctype} .form-horizontal>
