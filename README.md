@@ -111,6 +111,8 @@ sqlite3 /var/lib/rememberportal/rememberportal.sqlite3
 sqlite> UPDATE user SET state = "Accepted", staff = 1 WHERE ident = "YourNick";
 ```
 
+You don't need to have working email setup in order to register because the verification URL is written to logs.
+
 #### Migration from original memberportal
 
 ```
