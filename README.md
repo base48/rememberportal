@@ -102,6 +102,15 @@ sqlite> ...
 sqlite> COMMIT;
 ```
 
+#### How to add admin user
+
+The first time you run rememberportal it creates an empty database. To add admin user, register as new member in the web app then add admin privileges:
+```
+sqlite3 /var/lib/rememberportal/rememberportal.sqlite3
+
+sqlite> UPDATE user SET state = "Accepted", staff = 1 WHERE ident = "YourNick";
+```
+
 #### Migration from original memberportal
 
 ```
