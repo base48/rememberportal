@@ -19,6 +19,9 @@
     <td> Number of ex members:
     <td> <a href=@{MembersExR}>#{num_ex}
   <tr>
+    <td> Number of suspended members:
+    <td> <a href=@{MembersSuspendedR}>#{num_suspended}
+  <tr>
     <td> Estimated monthly income (assuming no missed payments):
     <td> ^{balanceWidget monthly}
 

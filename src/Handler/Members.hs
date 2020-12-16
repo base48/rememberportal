@@ -21,6 +21,7 @@ getMembersOverviewR = do
     num_awaiting <- countMembers [UserState ==. Awaiting]
     num_ex <- countMembers [UserState ==. Exmember]
     num_rejected <- countMembers [UserState ==. Rejected]
+    num_suspended <- countMembers [UserState ==. Suspended]
     d <- runDB $ debtors
     monthly <- getMonthly
     defaultLayout $ do
@@ -50,6 +51,9 @@ getMembersAwaitingR = membersList [UserState ==. Awaiting]
 
 getMembersExR :: Handler Html
 getMembersExR = membersList [UserState ==. Exmember]
+
+getMembersSuspendedR :: Handler Html
+getMembersSuspendedR = membersList [UserState ==. Suspended]
 
 getMembersLevelR :: LevelId -> Handler Html
 getMembersLevelR lid = membersList [UserLevel ==. Just lid, UserState ==. Accepted]
