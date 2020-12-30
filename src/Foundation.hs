@@ -71,18 +71,19 @@ mkYesodData "App" [parseRoutes|
 
 / HomeR GET
 
-/member/profile        MemberProfileR   GET      !login
-/member/edit/#UserId   MemberEditR      GET POST !staff
+/member/profile         MemberProfileR    GET      !login
+/member/edit/#UserId    MemberEditR       GET POST !staff
 
-/members               MembersOverviewR GET      !member
-/members/list/accepted MembersAcceptedR GET      !member
-/members/list/rejected MembersRejectedR GET      !member
-/members/list/awaiting MembersAwaitingR GET      !member
-/members/list/ex       MembersExR       GET      !member
-/members/list/level/#LevelId MembersLevelR GET   !member
-/members/list/nolevel  MembersNoLevelR  GET      !member
-/members/list/keys     MembersKeysR     GET      !member
-/members/list/nokeys   MembersNoKeysR   GET      !member
+/members                MembersOverviewR  GET      !member
+/members/list/accepted  MembersAcceptedR  GET      !member
+/members/list/rejected  MembersRejectedR  GET      !member
+/members/list/awaiting  MembersAwaitingR  GET      !member
+/members/list/ex        MembersExR        GET      !member
+/members/list/suspended MembersSuspendedR GET      !member
+/members/list/level/#LevelId MembersLevelR GET     !member
+/members/list/nolevel   MembersNoLevelR   GET      !member
+/members/list/keys      MembersKeysR      GET      !member
+/members/list/nokeys    MembersNoKeysR    GET      !member
 
 /payments                       PaymentsR       GET      !member
 /payments/#UserId               PaymentsMemberR GET      !member
