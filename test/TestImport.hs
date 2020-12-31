@@ -21,7 +21,7 @@ import Yesod.Core.Unsafe     (fakeHandlerGetLogger)
 
 -- Wiping the database
 import Data.Maybe                           (fromJust)
-import Data.Time.Format
+import Data.Time.Format.Internal
 import Database.Persist.Sqlite              (sqlDatabase, mkSqliteConnectionInfo, fkEnabled, createSqlitePoolFromInfo)
 import Control.Monad.Logger                 (runLoggingT)
 import Lens.Micro                           (set)

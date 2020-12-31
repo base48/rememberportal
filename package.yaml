@@ -14,24 +14,24 @@ dependencies:
 - classy-prelude-yesod >=1.5 && <1.6
 - bytestring >=0.10 && <0.11
 - text >=0.11 && <2.0
-- persistent >=2.9 && <2.10
-- persistent-sqlite >=2.9 && <2.10
+- persistent
+- persistent-sqlite
 - persistent-template >=2.5 && <2.9
 - template-haskell
 - shakespeare >=2.0 && <2.1
 - hjsmin >=0.1 && <0.3
 - monad-control >=0.3 && <1.1
-- wai-extra >=3.0 && <3.1
+- wai-extra
 - yaml >=0.11 && <0.12
 - http-client-tls >=0.3 && <0.4
 - http-conduit >=2.3 && <2.4
 - directory >=1.1 && <1.4
 - warp >=3.0 && <3.4
 - data-default
-- aeson >=1.4 && <1.5
+- aeson
 - conduit >=1.0 && <2.0
 - monad-logger >=0.3 && <0.4
-- fast-logger >=2.2 && <2.5
+- fast-logger
 - wai-logger >=2.2 && <2.4
 - file-embed
 - safe
