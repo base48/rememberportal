@@ -9,14 +9,14 @@ dependencies:
 - yesod-auth >=1.6 && <1.7
 - yesod-static >=1.6 && <1.7
 - yesod-form >=1.6 && <1.7
-- classy-prelude >=1.5 && <1.6
-- classy-prelude-conduit >=1.5 && <1.6
-- classy-prelude-yesod >=1.5 && <1.6
+- classy-prelude
+- classy-prelude-conduit
+- classy-prelude-yesod
 - bytestring >=0.10 && <0.11
 - text >=0.11 && <2.0
 - persistent
 - persistent-sqlite
-- persistent-template >=2.5 && <2.9
+- persistent-template
 - template-haskell
 - shakespeare >=2.0 && <2.1
 - hjsmin >=0.1 && <0.3
