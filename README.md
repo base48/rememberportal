@@ -82,7 +82,7 @@ example [nixops](https://nixos.org/nixops/) configuration.
 
 #### Some FIO payments are missing from the database. What now?
 
-Run `curl "https://www.fio.cz/ib_api/rest/set-last-date/$FIOTOKENHERE/1970-01-01/"` to rewind last synced transaction pointer. Then run `rememberportal-sync-fio` to import ALL payments. Existing payments are left untouched, however if you deleted any payments they will be re-added.
+Run `curl "https://www.fio.cz/ib_api/rest/set-last-date/$FIOTOKENHERE/1970-01-01/"` to rewind last synced transaction pointer **Be aware that FIO does not let you load data older than 90 days by default (unless enabled under token settings in ib.fio.cz)** . Then run `rememberportal-sync-fio` to import ALL payments. Existing payments are left untouched, however if you deleted any payments they will be re-added.
 
 In order to avoid this problem, never use rememberportal's Fio token for anything else.
 
