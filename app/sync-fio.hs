@@ -17,7 +17,7 @@ import qualified Data.Text.IO as T
 import qualified Network.Wreq as Wreq
 
 url :: Text -> String
-url tok = "https://www.fio.cz/ib_api/rest/last/" ++ (unpack tok) ++ "/transactions.json"
+url tok = "https://fioapi.fio.cz/ib_api/rest/last/" ++ (unpack tok) ++ "/transactions.json"
 
 parse :: Text -> Value -> Either Text Payment
 parse ourFull tx = case fromJSON tx :: Result FioPayment of
