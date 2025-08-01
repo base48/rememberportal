@@ -11,6 +11,7 @@ module Payments.Fio
 -- https://www.fio.cz/docs/cz/API_Bankovnictvi.pdf
 
 import Data.Aeson
+import Data.Aeson.Key
 import Data.Aeson.Text
 import Data.Aeson.Types
 import Data.Scientific
@@ -77,7 +78,7 @@ instance FromJSON FioPayment where
       where
         parseColumn :: FromJSON a => Int -> Object -> Parser (Maybe a)
         parseColumn num v = do
-            mOuter <- v .:? ("column" <> tshow num)
+            mOuter <- v .:? ("column" <> (fromText $ tshow num))
             case mOuter of
                 Nothing -> return Nothing
                 Just o  -> do

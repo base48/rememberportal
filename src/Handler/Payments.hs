@@ -12,7 +12,7 @@ module Handler.Payments where
 import Import
 import Payments.Fio
 
-import Data.Aeson
+import Data.Aeson hiding (Key)
 import Data.Time.Calendar
 import qualified Data.Text.Encoding as TE
 import qualified Data.Map.Strict as Map

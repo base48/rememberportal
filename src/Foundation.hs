@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE RankNTypes #-}
@@ -20,6 +21,7 @@ import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
 import Data.Char            (isAlphaNum, isAscii, isDigit)
+import Data.Kind            (Type)
 import Data.Maybe           (fromJust)
 import Data.Text.Read       (rational)
 
@@ -99,7 +101,7 @@ mkYesodData "App" [parseRoutes|
 type Form x = Html -> MForm (HandlerFor App) (FormResult x, Widget)
 
 -- | A convenient synonym for database access functions.
-type DB a = forall (m :: * -> *).
+type DB a = forall (m :: Type -> Type).
     (MonadIO m) => ReaderT SqlBackend m a
 
 -- Please see the documentation for the Yesod typeclass. There are a number
