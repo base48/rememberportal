@@ -60,16 +60,14 @@ main = handler $ do
     (ps, nDownloaded) <- liftIO $ getPaymentList tok
     let nParsed = length ps
     is <- runDB $ do
-        acctMap <- getRemoteAcctMap "fio"
         payIdMap <- getPaymentsIdMap
-        let assigned = assignMany payIdMap acctMap ps
+        let assigned = assignMany payIdMap ps
         forM assigned $ \(p, mhow) -> do
             when (isJust mhow) $ liftIO $ cmdLog $ "assigned by " <> (fromJust mhow) <> ": " <> (pack $ show p)
             res <- insertUnique p
             return $ (isJust res, mhow)
     let nInserted = countNum fst is
     let nId = countMatch "payments id" is
-    let nAcct = countMatch "account number" is
     let nDuplicate = nParsed - nInserted
     let stats =
             [ ("downloaded", nDownloaded)
@@ -77,7 +75,6 @@ main = handler $ do
             , ("duplicate",  nDuplicate)
             , ("inserted",   nInserted)
             , ("assigned by id", nId)
-            , ("assigned by account", nAcct)
             ]
     liftIO $ forM_ stats $ \(s, n) -> do
         cmdLog $ s <> ": " <> (pack $ show $ n)
